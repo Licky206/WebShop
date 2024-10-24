@@ -1,0 +1,28 @@
+<div class="mb-4">
+  <h2 class="text-success"><b>Login</b></h2>
+  <div>
+    Nemate Nalog?
+    <a routerLink="/signup" class="text-decoration-none fw-medium text-success">Sign up</a>
+  </div>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <!-- Email Input -->
+  <div class="mb-3">
+    <label for="email" class="form-label">Email</label>
+    <input id="email" type="email" class="form-control bg-body-secondary" placeholder="Enter your email" formControlName="email">
+     <!--  <div class="form-text">Please enter your email address.</div> -->
+  </div>
+
+  <!-- Password Input -->
+  <div class="mb-3">
+    <label for="password" class="form-label">Password</label>
+    <input id="password" type="password" class="form-control bg-body-secondary" placeholder="Enter your password" formControlName="password">
+    <!--   <div class="form-text">Please enter your password.</div> -->
+  </div>
+
+  <!-- Submit Button -->
+  <div class="mt-4">
+    <button type="submit" class="btn btn-success w-100 rounded-3">Prijavite se</button>
+  </div>
+</form>
