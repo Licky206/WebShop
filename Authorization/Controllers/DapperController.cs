@@ -17,45 +17,66 @@ namespace Authorization.Controllers
         {
             return View();
         }
-        [HttpPost("Add Proizvod")]
-        public async Task<IActionResult> AddProzivod(Proizvod proizvod)
+        //Kreiranje novog racuna
+        [HttpPost("racun")]
+        public IActionResult CreateRacun([FromBody] Racun racun)
         {
-            var sql = @"INSERT INTO Proizvod (NazivProizvoda, Cena) 
-                        VALUES (@NazivProizvoda, @Cena); 
-                        SELECT CAST(SCOPE_IDENTITY() as int)";
+            racun.StatusRacuna = "U IZRADI";
+            racun.Datum = DateTime.Now.Date;
+            racun.Vreme = DateTime.Now.TimeOfDay;
 
             using (var connection = new SqlConnection(_connectionString))
             {
-                try
-                {
-                    await connection.OpenAsync();
-                    var id = await connection.QuerySingleAsync<int>(sql, proizvod);
-                    return Ok(new { ProizvodID = id });
-                }
-                catch (Exception ex)
-                {
-                    return BadRequest(new {ex.Message });
+                connection.Open();
+                var racunId = connection.ExecuteScalar<int>(
+                "INSERT INTO Racun (StatusRacuna, Datum, Vreme) OUTPUT INSERTED.RacunId VALUES (@StatusRacuna, @Datum, @Vreme)",
+                racun
+            );
 
-                }
+                racun.RacunId = racunId;
             }
+
+            return CreatedAtAction(nameof(GetRacun), new { id = racun.RacunId }, racun);
         }
 
-        [HttpPost("Add Racun ")]
-        public async Task<IActionResult> AddRacun(Racun racun)
+        //Kreiranje StavkeRacuna, odnosno prikaz racuna sa svim stavkama
+        [HttpGet("{id}/detalji")]
+        public IActionResult GetRacun(int id)
         {
-            var sql = @"INSERT INTO Racun (StatusRacuna, Datum, Vreme) 
-                VALUES (@StatusRacuna, @Datum, @Vreme); 
-                SELECT CAST(SCOPE_IDENTITY() as int)";
-
             using (var connection = new SqlConnection(_connectionString))
             {
-                var id = await connection.QuerySingleAsync<int>(sql, racun);
-                return Ok(id);
+                connection.Open();
+
+                var racun = connection.Query<Racun, StavkeRacuna, Proizvod, Racun>(
+                     @"SELECT r.*, s.*, p.*
+                      FROM Racun r
+                      LEFT JOIN StavkeRacuna s ON r.RacunId = s.RacunId
+                      LEFT JOIN Proizvod p ON s.ProizvodID = p.ProizvodID
+                      WHERE r.RacunId = @id",
+                      (rac, stavka, proizvod) =>
+                      {
+                          if (stavka != null)
+                          {
+                              stavka.Proizvod = proizvod;
+                              rac.StavkeRacuna.Add(stavka);
+                          }
+                          return rac;
+                      },
+                      new { id },
+                        splitOn: "StavkeRacunaID,ProizvodID"
+                        ).FirstOrDefault();
+
+                    if (racun == null)
+                        return NotFound($"Račun sa ID-jem {id} ne postoji.");
+
+                    return Ok(racun);
             }
+            
         }
+
 
         //BULK INSERT
-        [HttpPost("bulk-insert")]
+        [HttpPost("Dodavanja Proizvoda - bulk insert")]
         public IActionResult BulkInsert([FromBody] List<Proizvod> proizvodi)
         {
             using (var connection = new SqlConnection(_connectionString))
@@ -78,60 +99,10 @@ namespace Authorization.Controllers
                     {
                         dataTable.Rows.Add(proizvod.ProizvodID, proizvod.NazivProizvoda, proizvod.Cena);
                     }
-
                     bulkCopy.WriteToServer(dataTable);
                 }
             }
-
             return Ok("Proizvodi su uspešno dodati.");
         }
-
-        //DODAVANJE U STAVKU RACUNA
-        [HttpPost("dodaj-stavke/{racunId}")]
-        public IActionResult DodajStavke(int racunId, [FromBody] List<StavkeRacuna> stavke)
-        {
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                connection.Open();
-                foreach (var stavka in stavke)
-                {
-                    var command = new SqlCommand("INSERT INTO StavkeRacuna (RacunID, ProizvodID, Kolicina, Popust) VALUES (@RacunID, @ProizvodID, @Kolicina, @Popust)", connection);
-                    command.Parameters.AddWithValue("@RacunID", racunId);
-                    command.Parameters.AddWithValue("@ProizvodID", stavka.Proizvod.ProizvodID);
-                    command.Parameters.AddWithValue("@Kolicina", stavka.Kolicina);
-                    command.Parameters.AddWithValue("@Popust", stavka.Popust);
-                    command.ExecuteNonQuery();
-                }
-            }
-
-            return Ok("Stavke su uspešno dodate.");
-        }
-
-
-        //Kreiranje RACUNA
-        [HttpPost("KreirajRacun")]
-        public async Task<IActionResult> KreirajRacun([FromBody] Racun racun)
-        {
-            var sql = @"
-            INSERT INTO Racun (StatusRacuna, Datum, Vreme)
-            VALUES (@StatusRacuna, @Datum, @Vreme);
-            SELECT CAST(SCOPE_IDENTITY() as int)";
-
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                await connection.OpenAsync();
-                var racunId = await connection.QuerySingleAsync<int>(sql, new
-                {
-                    racun.StatusRacuna,
-                    racun.Datum,
-                    racun.Vreme
-                });
-
-                return Ok(new { RacunID = racunId });
-            }
-        }
-
-
-
     }
 }
