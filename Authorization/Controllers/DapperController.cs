@@ -9,6 +9,7 @@ namespace Authorization.Controllers
     public class DapperController : Controller
     {
         private readonly string _connectionString;
+
         public DapperController(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection");
@@ -17,61 +18,50 @@ namespace Authorization.Controllers
         {
             return View();
         }
-        //Kreiranje novog racuna
-        [HttpPost("racun")]
-        public IActionResult CreateRacun([FromBody] Racun racun)
+
+        // Prikaz računa
+        [HttpPost("KreirajRacun")]
+        public IActionResult KreirajRacun([FromBody] List<Proizvod> proizvodi)
         {
-            racun.StatusRacuna = "U IZRADI";
-            racun.Datum = DateTime.Now.Date;
-            racun.Vreme = DateTime.Now.TimeOfDay;
+            // Kreiraj novi račun
+            var racun = new Racun
+            {
+                StatusRacuna = "U IZDRADI",
+                Datum = DateTime.Now.Date,
+                Vreme = DateTime.Now.TimeOfDay,
+            };
 
             using (var connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
+
+                // Umetni račun u bazu i uzmi njegov ID
                 var racunId = connection.ExecuteScalar<int>(
-                "INSERT INTO Racun (StatusRacuna, Datum, Vreme) OUTPUT INSERTED.RacunId VALUES (@StatusRacuna, @Datum, @Vreme)",
-                racun
-            );
+                    "INSERT INTO Racun (StatusRacuna, Datum, Vreme) OUTPUT INSERTED.RacunId VALUES (@StatusRacuna, @Datum, @Vreme)",
+                    new
+                    {
+                        StatusRacuna = racun.StatusRacuna,
+                        Datum = racun.Datum,
+                        Vreme = racun.Vreme
+                    }
+                );
 
-                racun.RacunId = racunId;
+                // Umetni stavke računa
+                foreach (var proizvod in proizvodi)
+                {
+                    connection.Execute(
+                        "INSERT INTO StavkeRacuna (RacunID, Kolicina, Popust, ProizvodID) VALUES (@RacunID, @Kolicina, @Popust, @ProizvodID)",
+                        new
+                        {
+                            RacunID = racunId, // ID kreiranog računa
+                            Kolicina = 1, // Ovde postavi količinu prema potrebi
+                            Popust = 0, // Ovde postavi popust prema potrebi
+                            ProizvodID = proizvod.ProizvodID
+                        });
+                }
             }
 
-            return CreatedAtAction(nameof(GetRacun), new { id = racun.RacunId }, racun);
-        }
-
-        //Kreiranje StavkeRacuna, odnosno prikaz racuna sa svim stavkama
-        [HttpGet("{id}/detalji")]
-        public IActionResult GetRacun(int id)
-        {
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                connection.Open();
-
-                var racun = connection.Query<Racun, StavkeRacuna, Proizvod, Racun>(
-                     @"SELECT r.*, s.*, p.*
-                      FROM Racun r
-                      LEFT JOIN StavkeRacuna s ON r.RacunId = s.RacunId
-                      LEFT JOIN Proizvod p ON s.ProizvodID = p.ProizvodID
-                      WHERE r.RacunId = @id",
-                      (rac, stavka, proizvod) =>
-                      {
-                          if (stavka != null)
-                          {
-                              stavka.Proizvod = proizvod;
-                              rac.StavkeRacuna.Add(stavka);
-                          }
-                          return rac;
-                      },
-                      new { id },
-                        splitOn: "StavkeRacunaID,ProizvodID"
-                        ).FirstOrDefault();
-
-                    if (racun == null)
-                        return NotFound($"Račun sa ID-jem {id} ne postoji.");
-
-                    return Ok(racun);
-            }
-            
+            return CreatedAtAction(nameof(KreirajRacun), new { id = racun.RacunId }, racun);
         }
 
 
@@ -88,12 +78,12 @@ namespace Authorization.Controllers
                     bulkCopy.DestinationTableName = "Proizvod";
                     bulkCopy.ColumnMappings.Add("ProizvodID", "ProizvodID");
                     bulkCopy.ColumnMappings.Add("NazivProizvoda", "NazivProizvoda");
-                    bulkCopy.ColumnMappings.Add("Cena", "Cena"); 
+                    bulkCopy.ColumnMappings.Add("Cena", "Cena");
 
                     var dataTable = new DataTable();
                     dataTable.Columns.Add("ProizvodID", typeof(int));
                     dataTable.Columns.Add("NazivProizvoda", typeof(string));
-                    dataTable.Columns.Add("Cena", typeof(int)); 
+                    dataTable.Columns.Add("Cena", typeof(int));
 
                     foreach (var proizvod in proizvodi)
                     {
@@ -104,5 +94,37 @@ namespace Authorization.Controllers
             }
             return Ok("Proizvodi su uspešno dodati.");
         }
+
+        [HttpGet("StavkeRacuna/{racunId}")]
+        public IActionResult GetStavkeRacuna(int racunId)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                var stavke = connection.Query<StavkeRacuna, Proizvod, StavkeRacuna>(
+                @"SELECT s.*, p.* 
+                  FROM StavkeRacuna s
+                  LEFT JOIN Proizvod p ON s.ProizvodID = p.ProizvodID
+                  WHERE s.RacunID = @RacunID",
+                (stavka, proizvod) =>
+                {
+                    stavka.Proizvod = proizvod; // Poveži proizvod sa stavkom
+                    return stavka;
+                },
+                new { RacunID = racunId },
+                splitOn: "ProizvodID"
+                ).ToList();
+
+
+                if (!stavke.Any())
+                {
+                    return NotFound("nema stavki za racunem sa id {racunId}");
+                }
+
+                return Ok(stavke);
+            }
+        }
+
     }
 }

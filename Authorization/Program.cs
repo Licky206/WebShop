@@ -147,8 +147,6 @@ if (user != null && await userManager.CheckPasswordAsync(user, loginModel.Passwo
         return Results.BadRequest(new { message = "Username or password is incorrect." });
 
 });
-    
-   
 
 app.Run();
 
