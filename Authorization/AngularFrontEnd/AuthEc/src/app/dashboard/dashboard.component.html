@@ -1,2 +1,29 @@
-<p>dashboard works!</p>
+<p>Logout</p>
 <button class="btn btn-dark" (click)="onLogout()">Logout</button>
+
+<p></p>
+<p>Create Racun</p>
+<button class="btn btn-primary" (click)="kreirajRacun()">Create Racun</button>
+
+<p></p>
+<p>BULK INSERT</p>
+<button class="btn btn-secondary" (click)="bulkInsertProizvodi()">Bulk Insert Proizvodi</button>
+
+<p></p>
+<p>Get Stavke Racuna</p>
+<button class="btn btn-info" (click)="getStavkeRacuna()">Get Stavke Racuna</button>
+
+<!-- Display Racun ID if created -->
+<div *ngIf="racunId">
+  <p>Created Racun ID: {{ racunId }}</p>
+</div>
+
+<!-- Display StavkeRacuna if available -->
+<div *ngIf="stavkeRacuna.length">
+  <h3>Stavke Racuna:</h3>
+  <ul>
+    <li *ngFor="let stavka of stavkeRacuna">
+      {{ stavka.Proizvod?.NazivProizvoda }} - Quantity: {{ stavka.Kolicina }}, Discount: {{ stavka.Popust }}
+    </li>
+  </ul>
+</div>
