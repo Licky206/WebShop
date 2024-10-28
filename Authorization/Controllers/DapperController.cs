@@ -109,7 +109,7 @@ namespace Authorization.Controllers
                   WHERE s.RacunID = @RacunID",
                 (stavka, proizvod) =>
                 {
-                    stavka.Proizvod = proizvod; // Poveži proizvod sa stavkom
+                    stavka.Proizvod = proizvod;  
                     return stavka;
                 },
                 new { RacunID = racunId },
