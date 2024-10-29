@@ -23,7 +23,6 @@ namespace Authorization.Controllers
         [HttpPost("KreirajRacun")]
         public IActionResult KreirajRacun([FromBody] List<Proizvod> proizvodi)
         {
-            // Kreiraj novi račun
             var racun = new Racun
             {
                 StatusRacuna = "U IZDRADI",
@@ -34,8 +33,7 @@ namespace Authorization.Controllers
             using (var connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
-
-                // Umetni račun u bazu i uzmi njegov ID
+                 
                 var racunId = connection.ExecuteScalar<int>(
                     "INSERT INTO Racun (StatusRacuna, Datum, Vreme) OUTPUT INSERTED.RacunId VALUES (@StatusRacuna, @Datum, @Vreme)",
                     new
@@ -46,16 +44,15 @@ namespace Authorization.Controllers
                     }
                 );
 
-                // Umetni stavke računa
                 foreach (var proizvod in proizvodi)
                 {
                     connection.Execute(
                         "INSERT INTO StavkeRacuna (RacunID, Kolicina, Popust, ProizvodID) VALUES (@RacunID, @Kolicina, @Popust, @ProizvodID)",
                         new
                         {
-                            RacunID = racunId, // ID kreiranog računa
-                            Kolicina = 1, // Ovde postavi količinu prema potrebi
-                            Popust = 0, // Ovde postavi popust prema potrebi
+                            RacunID = racunId, 
+                            Kolicina = 1,  
+                            Popust = 0, 
                             ProizvodID = proizvod.ProizvodID
                         });
                 }
@@ -65,35 +62,6 @@ namespace Authorization.Controllers
         }
 
 
-        //BULK INSERT
-        [HttpPost("Dodavanja Proizvoda - bulk insert")]
-        public IActionResult BulkInsert([FromBody] List<Proizvod> proizvodi)
-        {
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                connection.Open();
-
-                using (var bulkCopy = new SqlBulkCopy(connection))
-                {
-                    bulkCopy.DestinationTableName = "Proizvod";
-                    bulkCopy.ColumnMappings.Add("ProizvodID", "ProizvodID");
-                    bulkCopy.ColumnMappings.Add("NazivProizvoda", "NazivProizvoda");
-                    bulkCopy.ColumnMappings.Add("Cena", "Cena");
-
-                    var dataTable = new DataTable();
-                    dataTable.Columns.Add("ProizvodID", typeof(int));
-                    dataTable.Columns.Add("NazivProizvoda", typeof(string));
-                    dataTable.Columns.Add("Cena", typeof(int));
-
-                    foreach (var proizvod in proizvodi)
-                    {
-                        dataTable.Rows.Add(proizvod.ProizvodID, proizvod.NazivProizvoda, proizvod.Cena);
-                    }
-                    bulkCopy.WriteToServer(dataTable);
-                }
-            }
-            return Ok("Proizvodi su uspešno dodati.");
-        }
 
         [HttpGet("StavkeRacuna/{racunId}")]
         public IActionResult GetStavkeRacuna(int racunId)
