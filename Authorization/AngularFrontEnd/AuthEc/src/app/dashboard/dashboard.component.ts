@@ -1,66 +1,71 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { Router } from '@angular/router';
+import { Proizvod, StavkeRacuna } from '../../models/models';  
+import { CommonModule } from '@angular/common'; 
+
+ // Adjust imports based on your structure
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
+  //styleUrls: ['./dashboard.component.css']
 })
-export class DashboardComponent {
-  racunId: number | null = null;
-  stavkeRacuna: any[] = [];
-  proizvodi: any[] = []; // Array to store products for bulk insert
+export class DashboardComponent implements OnInit {
+  availableProizvodi: Proizvod[] = [];  
+  stavkeRacuna: StavkeRacuna[] = [];    
+  racunId: number | null = null;       
+  cart: Proizvod[] = [];               
 
-  constructor(private router: Router, private http: HttpClient) {}
+  constructor(private http: HttpClient, private router : Router) {}
 
-  // Logout function
+  ngOnInit() {
+    this.fetchAvailableProizvodi();
+  }
+
+  // Fetch available products
+  fetchAvailableProizvodi() {
+    this.http.get<Proizvod[]>('/api/your-endpoint-for-products').subscribe(
+      data => this.availableProizvodi = data,
+      error => console.error('Error fetching products', error)
+    );
+  }
+
+  // Add selected product to cart
+  addToRacun(proizvod: Proizvod) {
+    this.cart.push(proizvod); // Adds product to the cart array
+  }
+
+  // Create Racun with cart items
+  kreirajRacun() {
+    this.http.post<any>('https://localhost:7164/api/KreirajRacun', this.cart).subscribe(
+      response => {
+        this.racunId = response.id; // Store Racun ID from response
+        this.stavkeRacuna = response.stavkeRacuna; // If response includes items, display them
+        this.cart = []; // Clear cart after Racun is created
+      },
+      error => console.error('Error creating Racun', error)
+    );
+  }
+
+  // Bulk insert products (optional if bulk operation needed)
+  bulkInsertProizvodi() {
+    this.http.post<any>('https://localhost:7164/api/DodavanjaProizvodaBulkInsert', this.availableProizvodi).subscribe(
+      () => console.log('Bulk insert successful'),
+      error => console.error('Bulk insert error', error)
+    );
+  }
+
+  // Get Racun items based on Racun ID
+  getStavkeRacuna() {
+    this.http.get<StavkeRacuna[]>(`/api/StavkeRacuna/${this.racunId}`).subscribe(
+      data => this.stavkeRacuna = data,
+      error => console.error('Error fetching Stavke Racuna', error)
+    );
+  }
   onLogout() {
     localStorage.removeItem('token');
     this.router.navigateByUrl('/signup');
-  }
-
-  // Method to create a Racun
-  kreirajRacun() {
-    const proizvodi = [
-      { ProizvodID: 1 }, // Example product IDs, replace with actual IDs
-      { ProizvodID: 2 }
-    ];
-    
-    this.http.post<any>('http://localhost:5000/KreirajRacun', proizvodi)
-      .subscribe(
-        response => {
-          this.racunId = response.racunId; // Capture the Racun ID
-          alert('Racun created successfully!');
-        },
-        error => console.error('Error creating Racun:', error)
-      );
-  }
-
-  // Method to bulk insert Proizvod items
-  bulkInsertProizvodi() {
-    const proizvodi = [
-      { ProizvodID: 1, NazivProizvoda: 'Product A', Cena: 100 },
-      { ProizvodID: 2, NazivProizvoda: 'Product B', Cena: 200 }
-    ];
-    
-    this.http.post('http://localhost:5000/Dodavanja Proizvoda - bulk insert', proizvodi)
-      .subscribe(
-        () => alert('Proizvodi bulk insert successful!'),
-        error => console.error('Error with bulk insert:', error)
-      );
-  }
-
-  // Method to get StavkeRacuna by RacunID
-  getStavkeRacuna() {
-    if (this.racunId) {
-      this.http.get<any[]>(`http://localhost:5000/StavkeRacuna/${this.racunId}`)
-        .subscribe(
-          data => this.stavkeRacuna = data,
-          error => console.error('Error fetching StavkeRacuna:', error)
-        );
-    } else {
-      alert('Please create a Racun first.');
-    }
   }
 }
