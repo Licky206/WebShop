@@ -60,38 +60,49 @@ namespace Authorization.Controllers
 
             return CreatedAtAction(nameof(KreirajRacun), new { id = racun.RacunId }, racun);
         }
-
-
-
-        [HttpGet("StavkeRacuna/{racunId}")]
-        public IActionResult GetStavkeRacuna(int racunId)
+        [HttpPost("Dodavanja-vise-Proizvoda")]
+        public IActionResult BulkInsert([FromBody] List<Proizvod> proizvodi)
         {
+            // Check if proizvodi is null
+            if (proizvodi == null)
+            {
+                return BadRequest("Proizvodi cannot be null.");
+            }
+
             using (var connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
 
-                var stavke = connection.Query<StavkeRacuna, Proizvod, StavkeRacuna>(
-                @"SELECT s.*, p.* 
-                  FROM StavkeRacuna s
-                  LEFT JOIN Proizvod p ON s.ProizvodID = p.ProizvodID
-                  WHERE s.RacunID = @RacunID",
-                (stavka, proizvod) =>
+                using (var command = new SqlCommand("BulkIns_Proizvod", connection))
                 {
-                    stavka.Proizvod = proizvod;  
-                    return stavka;
-                },
-                new { RacunID = racunId },
-                splitOn: "ProizvodID"
-                ).ToList();
+                    command.CommandType = CommandType.StoredProcedure;
 
+                    // Create a DataTable to hold the products
+                    var dataTable = new DataTable();
+                    dataTable.Columns.Add("ProizvodID", typeof(int));
+                    dataTable.Columns.Add("NazivProizvoda", typeof(string));
+                    dataTable.Columns.Add("Cena", typeof(decimal));
 
-                if (!stavke.Any())
-                {
-                    return NotFound("nema stavki za racunem sa id {racunId}");
+                    // Populate the DataTable
+                    foreach (var proizvod in proizvodi)
+                    {
+                        dataTable.Rows.Add(proizvod.NazivProizvoda, proizvod.Cena);
+                    }
+
+                    // Add the DataTable as a parameter
+                    var parameter = new SqlParameter("@Proizvodi", SqlDbType.Structured)
+                    {
+                        TypeName = "dbo.ProizvodTableType", // Make sure this matches your SQL Server Table Type
+                        Value = dataTable
+                    };
+                    command.Parameters.Add(parameter);
+
+                    // Execute the command
+                    command.ExecuteNonQuery();
                 }
-
-                return Ok(stavke);
             }
+
+            return Ok("Proizvodi su uspešno dodati.");
         }
 
     }

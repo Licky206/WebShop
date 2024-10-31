@@ -59,68 +59,68 @@ namespace Authorization.Controllers
 
 
 
-        //BULK INSERT
-        [HttpPost("Dodavanja vise Proizvoda od jednog - BULK INSERT")]
-        public IActionResult BulkInsert([FromBody] List<Proizvod> proizvodi)
-        {
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                connection.Open();
+        ////BULK INSERT
+        //[HttpPost("Dodavanja vise Proizvoda od jednog - BULK INSERT")]
+        //public IActionResult BulkInsert([FromBody] List<Proizvod> proizvodi)
+        //{
+        //    using (var connection = new SqlConnection(_connectionString))
+        //    {
+        //        connection.Open();
 
-                using (var bulkCopy = new SqlBulkCopy(connection))
-                {
-                    bulkCopy.DestinationTableName = "Proizvod";
-                    bulkCopy.ColumnMappings.Add("ProizvodID", "ProizvodID");
-                    bulkCopy.ColumnMappings.Add("NazivProizvoda", "NazivProizvoda");
-                    bulkCopy.ColumnMappings.Add("Cena", "Cena");
+        //        using (var bulkCopy = new SqlBulkCopy(connection))
+        //        {
+        //            bulkCopy.DestinationTableName = "Proizvod";
+        //            bulkCopy.ColumnMappings.Add("ProizvodID", "ProizvodID");
+        //            bulkCopy.ColumnMappings.Add("NazivProizvoda", "NazivProizvoda");
+        //            bulkCopy.ColumnMappings.Add("Cena", "Cena");
 
-                    var dataTable = new DataTable();
-                    dataTable.Columns.Add("ProizvodID", typeof(int));
-                    dataTable.Columns.Add("NazivProizvoda", typeof(string));
-                    dataTable.Columns.Add("Cena", typeof(int));
+        //            var dataTable = new DataTable();
+        //            dataTable.Columns.Add("ProizvodID", typeof(int));
+        //            dataTable.Columns.Add("NazivProizvoda", typeof(string));
+        //            dataTable.Columns.Add("Cena", typeof(int));
 
-                    foreach (var proizvod in proizvodi)
-                    {
-                        dataTable.Rows.Add(proizvod.ProizvodID, proizvod.NazivProizvoda, proizvod.Cena);
-                    }
-                    bulkCopy.WriteToServer(dataTable);
-                }
-            }
-            return Ok("Proizvodi su uspešno dodati.");
-        }
+        //            foreach (var proizvod in proizvodi)
+        //            {
+        //                dataTable.Rows.Add(proizvod.ProizvodID, proizvod.NazivProizvoda, proizvod.Cena);
+        //            }
+        //            bulkCopy.WriteToServer(dataTable);
+        //        }
+        //    }
+        //    return Ok("Proizvodi su uspešno dodati.");
+        //}
 
 
-        [HttpPut(" UPDATE Proizvod po ID{id}")]
-        public async Task<ActionResult> UpdateProizvod(int id, [FromBody] Proizvod proizvod)
-        {
-            if (id != proizvod.ProizvodID)
-            {
-                return BadRequest();
-            }
+        //[HttpPut(" UPDATE Proizvod po ID{id}")]
+        //public async Task<ActionResult> UpdateProizvod(int id, [FromBody] Proizvod proizvod)
+        //{
+        //    if (id != proizvod.ProizvodID)
+        //    {
+        //        return BadRequest();
+        //    }
 
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                var rowsAffected = await connection.ExecuteAsync(
-                    "UPDATE Proizvodi SET Naziv = @Naziv, Cena = @Cena, Kolicina = @Kolicina WHERE Id = @Id", proizvod);
-                if (rowsAffected == 0)
-                {
-                    return NotFound();
-                }
-                return NoContent();
-            }
-        }
-        [HttpDelete("DELETE Proizvod po ID {id}")]
-        public async Task<ActionResult> DeleteProizvod(int id)
-        {
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                var rowsAffected = await connection.ExecuteAsync("DELETE FROM Proizvodi WHERE Id = @Id", new { Id = id });
-                if (rowsAffected == 0)
-                {
-                    return NotFound();
-                }
-                return NoContent();
-            }
-        }
+        //    using (var connection = new SqlConnection(_connectionString))
+        //    {
+        //        var rowsAffected = await connection.ExecuteAsync(
+        //            "UPDATE Proizvodi SET Naziv = @Naziv, Cena = @Cena, Kolicina = @Kolicina WHERE Id = @Id", proizvod);
+        //        if (rowsAffected == 0)
+        //        {
+        //            return NotFound();
+        //        }
+        //        return NoContent();
+        //    }
+        //}
+        //[HttpDelete("DELETE Proizvod po ID {id}")]
+        //public async Task<ActionResult> DeleteProizvod(int id)
+        //{
+        //    using (var connection = new SqlConnection(_connectionString))
+        //    {
+        //        var rowsAffected = await connection.ExecuteAsync("DELETE FROM Proizvodi WHERE Id = @Id", new { Id = id });
+        //        if (rowsAffected == 0)
+        //        {
+        //            return NotFound();
+        //        }
+        //        return NoContent();
+        //    }
+        //}
     }
 }

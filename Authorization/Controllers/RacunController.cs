@@ -23,6 +23,8 @@ namespace Authorization.Controllers
             {
                 connection.Open();
 
+
+                //Ne ovo vise 
                 var racunId = await connection.ExecuteScalarAsync<int>(
 
                     "INSERT INTO Racun (Datum) OUTPUT INSERTED.RacunID VALUES (GETDATE())"
@@ -74,7 +76,7 @@ namespace Authorization.Controllers
         }
         //// Prikaz stavki
         //[HttpGet("stavke-racuna/{racunId}")]
-        //public async Task<ActionResult<IEnumerable<StavkeRacuna>>> GetStavkeRacuna(int racunId)
+        //public async Task<ActionResult<IEnumerable<StavkeRacuna>>> GetStavkeRacuna2(int racunId)
         //{
         //    using (var connection = new SqlConnection(_connectionString))
         //    {
@@ -85,24 +87,24 @@ namespace Authorization.Controllers
 
 
 
-        //   Stavke racuna po RACUN ID
-        [HttpGet(" Pokazi StavkeRacuna za radunID :StavkeRacuna/{racunId}")]
+        [HttpGet("stavke-racuna/{racunId}")]
         public async Task<ActionResult<IEnumerable<StavkeRacuna>>> GetStavkeRacuna(int racunId)
         {
             using (var connection = new SqlConnection(_connectionString))
             {
                 var stavke = await connection.QueryAsync<StavkeRacuna, Proizvod, StavkeRacuna>(
-                    @"SELECT sr.*, p.ProizvodID, p.NazivProizvoda, p.Cena
-                      FROM StavkeRacuna sr
-                      LEFT JOIN Proizvod p ON sr.ProizvodID = p.ProizvodID
-                      WHERE sr.RacunID = @RacunID",
+                     @"SELECT sr.StavkeRacunaID, sr.RacunID, sr.Kolicina, sr.Popust,
+                     p.ProizvodID, p.NazivProizvoda, p.Cena
+                     FROM StavkeRacuna sr
+                     LEFT JOIN Proizvod p ON sr.ProizvodID = p.ProizvodID
+                     WHERE sr.RacunID = @RacunID",
                     (stavka, proizvod) =>
                     {
-                        stavka.Proizvod = proizvod;
+                        stavka.Proizvod = proizvod;  // Populate product details
                         return stavka;
                     },
-                   new { RacunID = racunId },
-                    splitOn: "ProizvodID"
+                    new { RacunId = racunId },
+                    splitOn: "ProizvodID"  // This tells Dapper where the `Proizvod` object begins
                 );
 
                 if (stavke == null || !stavke.Any())

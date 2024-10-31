@@ -4,7 +4,7 @@
     {
         public int ProizvodID { get; set; }
         public string NazivProizvoda { get; set; }
-        public int Cena { get; set; }
+        public decimal Cena { get; set; }
         public int Kolicina { get; set; }
 
     }
