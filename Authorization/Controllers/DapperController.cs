@@ -14,95 +14,108 @@ namespace Authorization.Controllers
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
-        public IActionResult Index()
+
+        [HttpPost("Dodaj proizvode")]
+        public async Task AddProizvod(string nazivProizvoda, decimal cena, int kolicina)
         {
-            return View();
+            var parameters = new DynamicParameters();
+            parameters.Add("@NazivProizvoda", nazivProizvoda);
+            parameters.Add("@Cena", cena);
+            parameters.Add("Kolicina", kolicina);
+
+            using(var connection = new SqlConnection(_connectionString))
+            {
+                await connection.ExecuteAsync("dbo.AddProizvod", parameters, commandType: CommandType.StoredProcedure);
+            }
         }
 
-        // Prikaz računa
-        [HttpPost("KreirajRacun")]
-        public IActionResult KreirajRacun([FromBody] List<Proizvod> proizvodi)
+        [HttpPost("CreateRacun")]
+        public async Task CreateRacun([FromBody] StatusRacuna statusRacuna)
         {
-            var racun = new Racun
+
+
+            var trenutniDatum = DateTime.Now.Date;
+            var trenutnoVreme = DateTime.Now.TimeOfDay;
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@StatusRacuna", statusRacuna.ToString().Replace('_', ' ')); 
+            parameters.Add("@Datum", trenutniDatum);
+            parameters.Add("Vreme", trenutnoVreme);
+
+            using(var connection = new SqlConnection(_connectionString))
             {
-                StatusRacuna = "U IZDRADI",
-                Datum = DateTime.Now.Date,
-                Vreme = DateTime.Now.TimeOfDay,
-            };
+                await connection.ExecuteAsync("dbo.CreateRacun", parameters, commandType: CommandType.StoredProcedure);
+            }
+        }
+
+        [HttpPost("AddStavkaRacuna")]
+        public async Task AddStavkaRacuna(int racunId, int proizvodId, int kolicina, decimal popust)
+        {
+            var parameters = new DynamicParameters();
+            parameters.Add("@RacunID", racunId);
+            parameters.Add("@ProizvodID", proizvodId);
+            parameters.Add("@Kolicina", kolicina);
+            parameters.Add("@Popust", popust);
 
             using (var connection = new SqlConnection(_connectionString))
             {
-                connection.Open();
-                 
-                var racunId = connection.ExecuteScalar<int>(
-                    "INSERT INTO Racun (StatusRacuna, Datum, Vreme) OUTPUT INSERTED.RacunId VALUES (@StatusRacuna, @Datum, @Vreme)",
-                    new
-                    {
-                        StatusRacuna = racun.StatusRacuna,
-                        Datum = racun.Datum,
-                        Vreme = racun.Vreme
-                    }
-                );
-
-                foreach (var proizvod in proizvodi)
-                {
-                    connection.Execute(
-                        "INSERT INTO StavkeRacuna (RacunID, Kolicina, Popust, ProizvodID) VALUES (@RacunID, @Kolicina, @Popust, @ProizvodID)",
-                        new
-                        {
-                            RacunID = racunId, 
-                            Kolicina = 1,  
-                            Popust = 0, 
-                            ProizvodID = proizvod.ProizvodID
-                        });
-                }
+                await connection.ExecuteAsync("dbo.AddStavkaRacuna", parameters, commandType: CommandType.StoredProcedure);
             }
-
-            return CreatedAtAction(nameof(KreirajRacun), new { id = racun.RacunId }, racun);
         }
-        [HttpPost("Dodavanja-vise-Proizvoda")]
-        public IActionResult BulkInsert([FromBody] List<Proizvod> proizvodi)
+        [HttpPost("ZavrsiRacun")]
+        public async Task<IActionResult> ZavrsiRacun([FromBody] Korpa korpa)
         {
-            // Check if proizvodi is null
-            if (proizvodi == null)
+            // Validacija da korpa ima stavke
+            if (!korpa.Stavke.Any())
             {
-                return BadRequest("Proizvodi cannot be null.");
+                return BadRequest("Korpa je prazna. Dodajte stavke pre završetka računa.");
             }
+
+            // Uzimanje trenutnog datuma i vremena
+            var trenutniDatum = DateTime.Now.Date;
+            var trenutnoVreme = DateTime.Now.TimeOfDay;
+
+            // Kreiranje računa
+            var parameters = new DynamicParameters();
+            parameters.Add("@StatusRacuna", "U IZRADI"); // ili drugi status
+            parameters.Add("@Datum", trenutniDatum);
+            parameters.Add("@Vreme", trenutnoVreme);
 
             using (var connection = new SqlConnection(_connectionString))
             {
-                connection.Open();
+                var racunId = await connection.ExecuteScalarAsync<int>("dbo.CreateRacun", parameters, commandType: CommandType.StoredProcedure);
 
-                using (var command = new SqlCommand("BulkIns_Proizvod", connection))
+                // Proveri da li je racunId validan
+                if (racunId <= 0)
                 {
-                    command.CommandType = CommandType.StoredProcedure;
+                    return StatusCode(500, "Greška prilikom kreiranja računa.");
+                }
 
-                    // Create a DataTable to hold the products
-                    var dataTable = new DataTable();
-                    dataTable.Columns.Add("ProizvodID", typeof(int));
-                    dataTable.Columns.Add("NazivProizvoda", typeof(string));
-                    dataTable.Columns.Add("Cena", typeof(decimal));
+                // Dodavanje stavki računa
+                foreach (var stavka in korpa.Stavke)
+                {
+                    var stavkaParameters = new DynamicParameters();
+                    stavkaParameters.Add("@RacunId", racunId);
+                    stavkaParameters.Add("@ProizvodID", stavka.ProizvodID);
+                    stavkaParameters.Add("@Kolicina", stavka.Kolicina);
+                    stavkaParameters.Add("@Popust", stavka.Popust);
 
-                    // Populate the DataTable
-                    foreach (var proizvod in proizvodi)
-                    {
-                        dataTable.Rows.Add(proizvod.NazivProizvoda, proizvod.Cena);
-                    }
-
-                    // Add the DataTable as a parameter
-                    var parameter = new SqlParameter("@Proizvodi", SqlDbType.Structured)
-                    {
-                        TypeName = "dbo.ProizvodTableType", // Make sure this matches your SQL Server Table Type
-                        Value = dataTable
-                    };
-                    command.Parameters.Add(parameter);
-
-                    // Execute the command
-                    command.ExecuteNonQuery();
+                    await connection.ExecuteAsync("dbo.AddStavkaRacuna", stavkaParameters, commandType: CommandType.StoredProcedure);
                 }
             }
 
-            return Ok("Proizvodi su uspešno dodati.");
+            // Očisti korpu nakon uspešnog dodavanja
+            korpa.OcistiKorpu();
+
+            return Ok("Račun je uspešno kreiran sa stavkama.");
+        }
+
+
+        public enum StatusRacuna
+        {
+            U_IZDRADI,
+            STORNIRAN,
+            FISKLAIZIRAN
         }
 
     }

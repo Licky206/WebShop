@@ -16,64 +16,66 @@ namespace Authorization.Controllers
             _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
-        [HttpPost("dodaj-racun")]
-        public async Task<IActionResult> DodajRacun([FromBody] List<Proizvod> izabraniProizvodi)
-        {
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                connection.Open();
 
 
-                //Ne ovo vise 
-                var racunId = await connection.ExecuteScalarAsync<int>(
+        //[HttpPost("dodaj-racun")]
+        //public async Task<IActionResult> DodajRacun([FromBody] List<Proizvod> izabraniProizvodi)
+        //{
+        //    using (var connection = new SqlConnection(_connectionString))
+        //    {
+        //        connection.Open();
 
-                    "INSERT INTO Racun (Datum) OUTPUT INSERTED.RacunID VALUES (GETDATE())"
-                );
 
-                //datatable od stavke
-                var stavkeDataTable = new DataTable();
-                stavkeDataTable.Columns.Add("RacunId", typeof(int));
-                stavkeDataTable.Columns.Add("ProizvodID", typeof(int));
-                stavkeDataTable.Columns.Add("Kolicina", typeof(int));
-                stavkeDataTable.Columns.Add("Popust", typeof(int));
+        //        //Ne ovo vise 
+        //        var racunId = await connection.ExecuteScalarAsync<int>(
 
-                foreach (var proizvod in izabraniProizvodi)
-                {
-                    stavkeDataTable.Rows.Add(racunId, proizvod.ProizvodID, proizvod.Kolicina, 0);
-                }
+        //            "INSERT INTO Racun (Datum) OUTPUT INSERTED.RacunID VALUES (GETDATE())"
+        //        );
 
-                using (var bulkCopy = new SqlBulkCopy(connection))
-                {
-                    bulkCopy.DestinationTableName = "StavkeRacuna";
-                    bulkCopy.ColumnMappings.Add("RacunId", "RacunId");
-                    bulkCopy.ColumnMappings.Add("ProizvodID", "ProizvodID");
-                    bulkCopy.ColumnMappings.Add("Kolicina", "Kolicina");
-                    bulkCopy.ColumnMappings.Add("Popust", "Popust");
+        //        //datatable od stavke
+        //        var stavkeDataTable = new DataTable();
+        //        stavkeDataTable.Columns.Add("RacunId", typeof(int));
+        //        stavkeDataTable.Columns.Add("ProizvodID", typeof(int));
+        //        stavkeDataTable.Columns.Add("Kolicina", typeof(int));
+        //        stavkeDataTable.Columns.Add("Popust", typeof(int));
+
+        //        foreach (var proizvod in izabraniProizvodi)
+        //        {
+        //            stavkeDataTable.Rows.Add(racunId, proizvod.ProizvodID, proizvod.Kolicina, 0);
+        //        }
+
+        //        using (var bulkCopy = new SqlBulkCopy(connection))
+        //        {
+        //            bulkCopy.DestinationTableName = "StavkeRacuna";
+        //            bulkCopy.ColumnMappings.Add("RacunId", "RacunId");
+        //            bulkCopy.ColumnMappings.Add("ProizvodID", "ProizvodID");
+        //            bulkCopy.ColumnMappings.Add("Kolicina", "Kolicina");
+        //            bulkCopy.ColumnMappings.Add("Popust", "Popust");
                     
 
-                    await bulkCopy.WriteToServerAsync(stavkeDataTable);
+        //            await bulkCopy.WriteToServerAsync(stavkeDataTable);
 
-                }
-            }
-            return Ok("Račun je kreiran i stavke su dodate.");
+        //        }
+        //    }
+        //    return Ok("Račun je kreiran i stavke su dodate.");
 
-        }
+        //}
 
         //Uzimanje Racuna
-        [HttpGet("racun/ {racunId}")]
-        public async Task<ActionResult<Racun>> GetRacun(int racunId)
-        {
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                var racun = await connection.QuerySingleOrDefaultAsync<Racun>("SELECT * FROM Racun WHERE RacunID = @Id", new { Id = racunId });
-                if (racun == null)
-                {
-                    return NotFound();
-                }
+        //[HttpGet("racun/ {racunId}")]
+        //public async Task<ActionResult<Racun>> GetRacun(int racunId)
+        //{
+        //    using (var connection = new SqlConnection(_connectionString))
+        //    {
+        //        var racun = await connection.QuerySingleOrDefaultAsync<Racun>("SELECT * FROM Racun WHERE RacunID = @Id", new { Id = racunId });
+        //        if (racun == null)
+        //        {
+        //            return NotFound();
+        //        }
 
-                return Ok(racun);
-            }
-        }
+        //        return Ok(racun);
+        //    }
+        //}
         //// Prikaz stavki
         //[HttpGet("stavke-racuna/{racunId}")]
         //public async Task<ActionResult<IEnumerable<StavkeRacuna>>> GetStavkeRacuna2(int racunId)
@@ -87,33 +89,33 @@ namespace Authorization.Controllers
 
 
 
-        [HttpGet("stavke-racuna/{racunId}")]
-        public async Task<ActionResult<IEnumerable<StavkeRacuna>>> GetStavkeRacuna(int racunId)
-        {
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                var stavke = await connection.QueryAsync<StavkeRacuna, Proizvod, StavkeRacuna>(
-                     @"SELECT sr.StavkeRacunaID, sr.RacunID, sr.Kolicina, sr.Popust,
-                     p.ProizvodID, p.NazivProizvoda, p.Cena
-                     FROM StavkeRacuna sr
-                     LEFT JOIN Proizvod p ON sr.ProizvodID = p.ProizvodID
-                     WHERE sr.RacunID = @RacunID",
-                    (stavka, proizvod) =>
-                    {
-                        stavka.Proizvod = proizvod;  // Populate product details
-                        return stavka;
-                    },
-                    new { RacunId = racunId },
-                    splitOn: "ProizvodID"  // This tells Dapper where the `Proizvod` object begins
-                );
+        //[HttpGet("stavke-racuna/{racunId}")]
+        //public async Task<ActionResult<IEnumerable<StavkeRacuna>>> GetStavkeRacuna(int racunId)
+        //{
+        //    using (var connection = new SqlConnection(_connectionString))
+        //    {
+        //        var stavke = await connection.QueryAsync<StavkeRacuna, Proizvod, StavkeRacuna>(
+        //             @"SELECT sr.StavkeRacunaID, sr.RacunID, sr.Kolicina, sr.Popust,
+        //             p.ProizvodID, p.NazivProizvoda, p.Cena
+        //             FROM StavkeRacuna sr
+        //             LEFT JOIN Proizvod p ON sr.ProizvodID = p.ProizvodID
+        //             WHERE sr.RacunID = @RacunID",
+        //            (stavka, proizvod) =>
+        //            {
+        //                stavka.Proizvod = proizvod;  // Populate product details
+        //                return stavka;
+        //            },
+        //            new { RacunId = racunId },
+        //            splitOn: "ProizvodID"  // This tells Dapper where the `Proizvod` object begins
+        //        );
 
-                if (stavke == null || !stavke.Any())
-                {
-                    return NotFound("Nema stavki za dati račun.");
-                }
+        //        if (stavke == null || !stavke.Any())
+        //        {
+        //            return NotFound("Nema stavki za dati račun.");
+        //        }
 
-                return Ok(stavke);
-            }
-        }
+        //        return Ok(stavke);
+        //    }
+        //}
     }
 }

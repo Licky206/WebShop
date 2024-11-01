@@ -1,0 +1,50 @@
+dbo.Proizvod
+	Columns:
+		ProizvodID (PK, int,not null)
+		NazivProizvoda (nvarchar(50),null)
+		Cena(decimal(10,2),null)
+dbo.Racun
+	Columns:
+		racunID(PK,int,not null)
+		StatusRacuna(nvarchar(50),null)
+		Datum(date,null)
+		vreme(time(0),null)
+
+dbo.StavkeRacuna
+	Columns:
+		StavkeRacunaID(PK, int, not null)
+		RacunId(FK, int, null)
+		ProizvodID(FK, int, null)
+		Kolicina(int, null)
+		Popust(decimal(5,2),null )
+
+
+
+StoredProcedures:
+[dbo].[AddProizvod]
+[dbo].[AddStavkaRacuna]
+[dbo].[BulkInsertProizvodi]
+[dbo].[CreateRacun]
+[dbo].[UpdateProizvodKolicina]
+
+user defined table types:
+[dbo].[ProizvodTableType]
+[dbo].[RacunTableType]
+[dbo].[StavkaRacunaTableType]
+
+
+
+
+STAVKE RACUNA KREIRANJU RACUN
+PRVO SE KREIRA RACUN
+
+KAD SE KEIRA RACUN RACUN CE SE KEIRATI U IZRADI
+ZATIM KREIRAM PROIZVODE I ONI SE DODAJU U STAVKE RACUNA SA TIM RACUN ID 
+
+U KORPI izaberem proizvod (Koji je vec spremljen za prodavnicu ima vec ID, Naziv , Cenu) zatim izaberem popust i kolicinu i zatim kada klinkem zavrsi aplikacija kreira taj racun i ubaci u listu StavkeRacuna i zatim to ubaci u Bazu.
+
+
+
+
+
+
