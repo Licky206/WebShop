@@ -1,7 +1,9 @@
 using Authorization.Models;
+using Dapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -12,7 +14,6 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -31,10 +32,8 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.User.RequireUniqueEmail = true;
 });
 
-
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DevDB")));
-
 
 //dodavanje authentikacije
 builder.Services.AddAuthentication(x =>
@@ -42,24 +41,31 @@ builder.Services.AddAuthentication(x =>
     x.DefaultAuthenticateScheme =
     x.DefaultChallengeScheme =
     x.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-    
-    }).AddJwtBearer(y =>
+
+}).AddJwtBearer(y =>
+{
+    y.SaveToken = false;
+    y.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
     {
-        y.SaveToken = false;
-        y.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["AppSettings:JWTSecret"]!))
+    };
+});
+
+//dodavanje CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins",
+        builder =>
         {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(
-              Encoding.UTF8.GetBytes(
-
-                  builder.Configuration["AppSettings:JWTSecret"]!))
-        };
-    });
-
+            builder.WithOrigins("http://localhost:4200") // Proveri da li je ovo URL tvog frontend-a
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
+        });
+});
 
 //dodavanje middlewera authentikacije
-
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -71,25 +77,25 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
+// Prvo postavi CORS politiku
+app.UseCors("AllowAllOrigins");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-#region Config. CORS
-app.UseCors(options =>
-options.WithOrigins("http://localhost:4200")
-    .AllowAnyMethod()
-    .AllowAnyHeader());
-
-#endregion
-
-
 app
     .MapGroup("/api")
     .MapIdentityApi<AppUser>(); // Changed from IdentityUser to AppUser
+
+app.MapGet("/api/proizvodi", async (IConfiguration configuration) =>
+{
+    using var connection = new SqlConnection(configuration.GetConnectionString("DevDB"));
+    await connection.OpenAsync();
+    var proizvodi = await connection.QueryAsync<Proizvod>("SELECT * FROM Proizvod");
+    return proizvodi.Any() ? Results.Ok(proizvodi) : Results.NotFound("Nema dostupnih proizvoda.");
+});
 
 app.MapPost("/api/signup", async (
     UserManager<AppUser> userManager, // Now correctly resolved
@@ -112,40 +118,29 @@ app.MapPost("/api/signup", async (
         return Results.BadRequest(result);
 });
 
-
 app.MapPost("/api/signin", async (UserManager<AppUser> userManager,
     [FromBody] LoginModel loginModel) =>
-
 {
-var user = await userManager.FindByEmailAsync(loginModel.Email);
-if (user != null && await userManager.CheckPasswordAsync(user, loginModel.Password))
-{
-    var signInKey = new SymmetricSecurityKey(
-        Encoding.UTF8.GetBytes(builder.Configuration["AppSettings:JWTSecret"]));
+    var user = await userManager.FindByEmailAsync(loginModel.Email);
+    if (user != null && await userManager.CheckPasswordAsync(user, loginModel.Password))
+    {
+        var signInKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["AppSettings:JWTSecret"]));
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(new Claim[]
-            {
-                new Claim("UserId", user.Id.ToString() )
-            }),
+            Subject = new ClaimsIdentity(new Claim[] { new Claim("UserId", user.Id.ToString()) }),
             Expires = DateTime.UtcNow.AddMinutes(10),
-            SigningCredentials = new SigningCredentials(
-                signInKey,
-                SecurityAlgorithms.HmacSha256Signature
-
-
-            )
+            SigningCredentials = new SigningCredentials(signInKey, SecurityAlgorithms.HmacSha256Signature)
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();
-        var securityToken = tokenHandler.CreateToken(tokenDescriptor);  
+        var securityToken = tokenHandler.CreateToken(tokenDescriptor);
         var token = tokenHandler.WriteToken(securityToken);
-        return Results.Ok( new { token });
+        return Results.Ok(new { token });
     }
     else
         return Results.BadRequest(new { message = "Username or password is incorrect." });
-
 });
 
 app.Run();
@@ -162,4 +157,3 @@ public class LoginModel
     public string Email { get; set; }
     public string Password { get; set; }
 }
-

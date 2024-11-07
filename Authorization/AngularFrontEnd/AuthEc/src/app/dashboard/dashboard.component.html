@@ -1,77 +1,82 @@
-
-
 <div class="container">
-  <header class="d-flex justify-content-between py-3 border-bottom">
-  <h2>Webshop</h2>
-  <button class="btn btn-dark" (click)="onLogout()">Logout</button>
-  </header>
-
+  <!-- Ostali sadržaj -->
 
   <div class="row mt-4">
     <div class="col-lg-3">
-      <h4>Manage Racuni</h4>
-      <button class="btn btn-primary w-100 mt-2" (click)="kreirajRacun()">Create New Racun</button>
-      <button class="btn btn-secondary w-100 mt-2" (click)="bulkInsertProizvodi()">Bulk Insert Products</button>
-      <button class="btn btn-info w-100 mt-2" (click)="getStavkeRacuna()">Get Racun Items</button>
+      <h4>Dodaj Proizvod u Korpu</h4>
 
-
-      <div *ngIf="racunId" class="alert alert-sucess mt-3">
-        <p>Created racun ID: {{racunId}}</p>
-
+      <!-- Dropdown za odabir proizvoda -->
+      <div>
+        <h2>Izaberite Proizvod:</h2>
+        <select class="form-select" [(ngModel)]="selectedProizvod" required>
+          <option *ngFor="let proizvod of availableProizvodi" [ngValue]="proizvod">
+            {{ proizvod.nazivProizvoda}} - Cena: {{ proizvod.Cena }} : $
+          </option>
+        </select>
+        <p *ngIf="proizvodi.length === 0">Nema proizvoda</p>
       </div>
-  </div>
 
-  <div class="col-lg-9">
-    <h4>Dostupni Proizvodi</h4>
-      <div class="row">
-        <div class="col-sm-6 col-md-4 col-lg-3" *ngFor="let proizvod of availableProizvodi">
-          <div class="card mb-3">
-            <div class="card-body">
-              <h5 class="card-title"> {{proizvod.NazivProizvoda}} </h5>
-              <p class="card-text"> Cena {{proizvod.Cena}}</p>
-              <button class="btn btn-primary" (click)="addToRacun(proizvod)">Add to Racun</button>
-          </div>
-          </div>
-          </div>  
+      <!-- Input za količinu i popust -->
+      <label>Kolicina: </label>
+      <input type="number" class="form-control mt-2" [(ngModel)]="kolicina" placeholder="Unesite količinu" />
+      <label>Popust: </label>
+      <input type="number" class="form-control mt-2" [(ngModel)]="popust" placeholder="Popust (%)" />
+
+      <!-- Dugme za dodavanje u korpu -->
+      <button class="btn btn-success mt-2" (click)="dodajUkorpu()">Dodaj u korpu</button>
+
+      <div *ngIf="cart.length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>Proizvod</th>
+              <th>Količina</th>
+              <th>Cena</th>
+              <th>Popust</th>
+              <th>Ukupna cena</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of cart">
+              <!-- Proizvod Name -->
+              <td>{{ item.proizvod.nazivProizvoda }}</td>
+              
+              <!-- Količina -->
+              <td>{{ item.kolicina }}</td>
+              
+              <!-- Cena (with pipe) -->
+              <td>{{ item.proizvod.Cena | currency }}</td>
+
+              
+              <!-- Popust -->
+              <td>{{ item.popust }}%</td>
+              
+              <!-- Ukupna cena (with pipe) -->
+              
+            </tr>
+          </tbody>
+        </table>
       </div>
+      
+      <!-- Ako je korpa prazna, prikaži poruku -->
+      <div *ngIf="cart.length === 0">
+        <p>Korpa je prazna.</p>
+      </div>
+      
+    </div>
+
+    <div class="col-lg-9">
+    </div>
   </div>
+
+  <!-- Prikaz stavki računa ako ih ima -->
+  <div *ngIf="stavkeRacuna.length" class="mt-4">
+    <h4>Stavke Računa</h4>
+    <ul class="list-group">
+      <li class="list-group-item" *ngFor="let stavka of stavkeRacuna">
+        <strong>{{ stavka.Proizvod?.nazivProizvoda }}</strong> - Količina: {{ stavka.Kolicina }},
+        Popust: {{ stavka.Popust }}%
+      </li>
+    </ul>
   </div>
-  
- <!-- Racun Items -->
- <div *ngIf="stavkeRacuna.length" class="mt-4">
-  <h4>Racun Items</h4>
-  <ul class="list-group">
-    <li class="list-group-item" *ngFor="let stavka of stavkeRacuna">
-      <strong>{{ stavka.Proizvod?.NazivProizvoda }}</strong> - Quantity: {{ stavka.Kolicina }},
-      Discount: {{ stavka.Popust }}%
-    </li>
-  </ul>
 </div>
-</div>
-<!-- <p></p>
-<p>Create Racun</p>
-<button class="btn btn-primary" (click)="kreirajRacun()">Create Racun</button>
-
-<p></p>
-<p>BULK INSERT</p>
-<button class="btn btn-secondary" (click)="bulkInsertProizvodi()">Bulk Insert Proizvodi</button>
-
-<p></p>
-<p>Get Stavke Racuna</p>
-
-<button class="btn btn-info" (click)="getStavkeRacuna()">Get Stavke Racuna</button>
-
-Display Racun ID if created
-<div *ngIf="racunId">
-  <p>Created Racun ID: {{ racunId }}</p>
-</div>
-
-Display StavkeRacuna if available
-<div *ngIf="stavkeRacuna.length">
-  <h3>Stavke Racuna:</h3>
-  <ul>
-    <li *ngFor="let stavka of stavkeRacuna">
-      {{ stavka.Proizvod?.NazivProizvoda }} - Quantity: {{ stavka.Kolicina }}, Discount: {{ stavka.Popust }}
-    </li>
-  </ul>
-</div> -->

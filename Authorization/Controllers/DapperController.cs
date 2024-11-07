@@ -14,6 +14,20 @@ namespace Authorization.Controllers
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
+        [HttpGet]
+        public async Task GetProizvod()
+        {
+
+        }
+        [HttpGet("Proizvodi")]
+        public async Task<ActionResult<IEnumerable<Proizvod>>> GetProizvodi()
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                var proizvodi = await connection.QueryAsync<Proizvod>("GetProizvodi", commandType: CommandType.StoredProcedure);
+                return Ok(proizvodi);
+            }
+        }
 
         [HttpPost("Dodaj proizvode")]
         public async Task AddProizvod(string nazivProizvoda, decimal cena, int kolicina)
@@ -32,8 +46,6 @@ namespace Authorization.Controllers
         [HttpPost("CreateRacun")]
         public async Task CreateRacun([FromBody] StatusRacuna statusRacuna)
         {
-
-
             var trenutniDatum = DateTime.Now.Date;
             var trenutnoVreme = DateTime.Now.TimeOfDay;
 
@@ -109,8 +121,6 @@ namespace Authorization.Controllers
 
             return Ok("Račun je uspešno kreiran sa stavkama.");
         }
-
-
         public enum StatusRacuna
         {
             U_IZDRADI,

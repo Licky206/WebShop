@@ -1,0 +1,18 @@
+/* dashboard.component.css */
+th {
+  padding: 10px 15px;
+  text-align: left;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table th, table td {
+  border: 1px solid #ddd;
+}
+
+table td {
+  padding: 8px;
+}
