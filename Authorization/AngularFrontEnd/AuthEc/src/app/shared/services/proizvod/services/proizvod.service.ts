@@ -14,4 +14,12 @@ export class ProizvodService {
   getProizvodi(): Observable<Proizvod[]> {
     return this.http.get<Proizvod[]>(this.apiUrl);
   }
+
+  deleteProizvod(proizvodId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/DeleteProizvod/${proizvodId}`);
+  }
+
+  updateProizvod(proizvod: Proizvod): Observable<void> {
+  return this.http.put<void>(`${this.apiUrl}/UpdateProizvod`, proizvod);
+}
 }

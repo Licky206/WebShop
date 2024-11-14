@@ -1,6 +1,12 @@
 <div class="container">
   <!-- Ostali sadržaj -->
 
+  <div class="d-flex justify-content-between align-items-center mt-4">
+    <h1><b>Web Shop</b></h1>
+    <!-- Logout dugme -->
+    <button class="btn btn-primary" (click)="onLogout()">Logout</button>
+  </div>
+
   <div class="row mt-4">
     <div class="col-lg-3">
       <h4>Dodaj Proizvod u Korpu</h4>
@@ -10,14 +16,14 @@
         <h2>Izaberite Proizvod:</h2>
         <select class="form-select" [(ngModel)]="selectedProizvod" required>
           <option *ngFor="let proizvod of availableProizvodi" [ngValue]="proizvod">
-            {{ proizvod.nazivProizvoda}} - Cena: {{ proizvod.Cena }} : $
+            {{ proizvod.nazivProizvoda }} - Cena: {{ proizvod.cena | number:'1.2-2' }}
           </option>
         </select>
-        <p *ngIf="proizvodi.length === 0">Nema proizvoda</p>
+        <p *ngIf="availableProizvodi.length === 0">Nema proizvoda</p>
       </div>
 
       <!-- Input za količinu i popust -->
-      <label>Kolicina: </label>
+      <label>Količina: </label>
       <input type="number" class="form-control mt-2" [(ngModel)]="kolicina" placeholder="Unesite količinu" />
       <label>Popust: </label>
       <input type="number" class="form-control mt-2" [(ngModel)]="popust" placeholder="Popust (%)" />
@@ -26,7 +32,8 @@
       <button class="btn btn-success mt-2" (click)="dodajUkorpu()">Dodaj u korpu</button>
 
       <div *ngIf="cart.length > 0">
-        <table>
+        <h3>Proizvodi u Korpi</h3>
+        <table class="table">
           <thead>
             <tr>
               <th>Proizvod</th>
@@ -34,49 +41,41 @@
               <th>Cena</th>
               <th>Popust</th>
               <th>Ukupna cena</th>
+              <th>Akcija</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let item of cart">
-              <!-- Proizvod Name -->
               <td>{{ item.proizvod.nazivProizvoda }}</td>
-              
-              <!-- Količina -->
-              <td>{{ item.kolicina }}</td>
-              
-              <!-- Cena (with pipe) -->
-              <td>{{ item.proizvod.Cena | currency }}</td>
-
-              
-              <!-- Popust -->
+              <td>
+                <input type="number" [(ngModel)]="item.kolicina" min="1" (change)="updateProductInCart(item.proizvod.ProizvodID, item.kolicina, item.popust)" class="quantity-input" />
+              </td>
+              <td>{{ item.proizvod.cena | number:'1.2-2' }}</td>
               <td>{{ item.popust }}%</td>
-              
-              <!-- Ukupna cena (with pipe) -->
-              
+              <td>{{ (item.proizvod.cena * item.kolicina * (1 - item.popust / 100)) | number:'1.2-2' }}</td>
+              <td>
+                <button (click)="deleteProductFromCart(item.proizvod.ProizvodID)" class="delete-btn">Obriši</button>
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
-      
-      <!-- Ako je korpa prazna, prikaži poruku -->
+
       <div *ngIf="cart.length === 0">
         <p>Korpa je prazna.</p>
       </div>
-      
+
     </div>
 
     <div class="col-lg-9">
+      <!-- Prostor za dodatne informacije, ako je potrebno -->
     </div>
   </div>
 
-  <!-- Prikaz stavki računa ako ih ima -->
-  <div *ngIf="stavkeRacuna.length" class="mt-4">
-    <h4>Stavke Računa</h4>
-    <ul class="list-group">
-      <li class="list-group-item" *ngFor="let stavka of stavkeRacuna">
-        <strong>{{ stavka.Proizvod?.nazivProizvoda }}</strong> - Količina: {{ stavka.Kolicina }},
-        Popust: {{ stavka.Popust }}%
-      </li>
-    </ul>
+  <!-- Dugme za završavanje računa -->
+  <div *ngIf="cart.length > 0">
+    <button class="btn btn-success mt-2"   (click)="createRacun()">Kreiraj Račun</button>
+    <!-- Dugme za završavanje računa -->
+  <button class="btn btn-success mt-2"   (click)="finalizeRacun()">Završi</button>
   </div>
 </div>

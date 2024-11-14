@@ -139,7 +139,6 @@ app.MapPost("/api/signin", async (UserManager<AppUser> userManager,
         var token = tokenHandler.WriteToken(securityToken);
         return Results.Ok(new { token });
     }
-    else
         return Results.BadRequest(new { message = "Username or password is incorrect." });
 });
 

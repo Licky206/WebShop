@@ -3,7 +3,7 @@
 export interface Proizvod {
   ProizvodID: number; // Add this if it is part of your API response
   nazivProizvoda: string;
-  Cena: number;
+  cena: number;
   Kolicina: number; // Optional, depending on your use case
 }
   
