@@ -7,12 +7,12 @@ import { Observable } from 'rxjs';
 })
 export class RacunService {
   
-  private apiUrl = 'https://localhost:7164/CreateRacun'; // Replace with your actual backend URL
+  private apiUrl = 'https://localhost:7164/KreirajRacunSaStavkama'; // Replace with your actual backend URL
 
   constructor(private http: HttpClient) { }
 
-  createRacun(): Observable<any> {
-    return this.http.post(this.apiUrl, {});
+  kreirajRacunSaStavkama(request: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/KreirajRacunSaStavkama`, request);
   }
   
 }

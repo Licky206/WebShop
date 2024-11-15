@@ -1,12 +1,12 @@
 ﻿using Authorization.Models;
 
-namespace Authorization.Repositories
+namespace Authorization.Services
 {
-    public interface IProductRepository
+    public interface IProizvodService
     {
-        Task<IEnumerable<Proizvod>> GetAllProductsAsync();
+
+        Task<IEnumerable<Proizvod>> GetProizvodAsync();
         Task AddProductAsync(string nazivProizvoda, decimal cena, int kolicina);
         Task DeleteProductAsync(int proizvodId);
-
     }
 }

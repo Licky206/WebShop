@@ -61,22 +61,25 @@ export class DashboardComponent implements OnInit {
         } else {``
             console.error('Nema proizvoda za dodavanje u korpu ili količina je nevalidna.');
         }
+    }  
+    
+    
+    kreirajRacunSaStavkama() {
+        if (this.cart.length === 0) {
+          console.error('Korpa je prazna, ne mogu da kreiram račun');
+          return;
+        }
+    
+        if (this.racunId === null) {
+          console.error('Račun nije kreiran');
+          return;
+        }
     }
 
-    createRacun(): void {
-        this.racunService.createRacun().subscribe({
-          next: (response) => {
-            console.log('Račun uspešno kreiran', response);
-            // You can assign the returned invoice ID to `racunId` if necessary
-            this.racunId = response.racunId; // Assuming the backend returns an ID
-          },
-          error: (err) => {
-            console.error('Greška prilikom kreiranja računa:', err);
-          }
-        });
-      }
 
-      finalizeRacun() {
+
+
+    finalizeRacun() {
 
         if (this.racunId === null) {
             console.error('Račun nije kreiran');

@@ -1,4 +1,6 @@
 using Authorization.Models;
+using Authorization.Repositories;
+using Authorization.Services;
 using Dapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -34,6 +36,11 @@ builder.Services.Configure<IdentityOptions>(options =>
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DevDB")));
+
+builder.Services.AddScoped<IProizvodRepository, ProizvodRepository>();
+builder.Services.AddScoped<IProizvodService, ProizvodService>();
+builder.Services.AddScoped<IRacunService, RacunService>();
+
 
 //dodavanje authentikacije
 builder.Services.AddAuthentication(x =>
