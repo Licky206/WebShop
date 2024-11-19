@@ -28,9 +28,8 @@ namespace Authorization.Controllers
 
             foreach (var racun in request.racun)
             { 
-                var vreme = racun.Vreme ?? TimeSpan.Zero;
 
-                var zahtev = await _racunService.KreirajRacunSaStavkama(racun.StatusRacuna, racun.Datum, vreme, request.stavke);
+                var zahtev = await _racunService.KreirajRacunSaStavkama(racun.StatusRacuna, racun.Datum, request.stavke);
 
                 if (!zahtev)
                 {

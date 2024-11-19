@@ -20,6 +20,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddMemoryCache();
 
 // Identity services configured with AppUser
 builder.Services
@@ -40,6 +41,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IProizvodRepository, ProizvodRepository>();
 builder.Services.AddScoped<IProizvodService, ProizvodService>();
 builder.Services.AddScoped<IRacunService, RacunService>();
+builder.Services.AddScoped<IRacunRepository, RacunRepository>();
+
 
 
 //dodavanje authentikacije
@@ -86,6 +89,7 @@ app.UseHttpsRedirection();
 
 // Prvo postavi CORS politiku
 app.UseCors("AllowAllOrigins");
+app.UseCors("AllowLocalhost");
 
 app.UseAuthentication();
 app.UseAuthorization();

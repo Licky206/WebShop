@@ -14,12 +14,14 @@
       <!-- Dropdown za odabir proizvoda -->
       <div>
         <h2>Izaberite Proizvod:</h2>
-        <select class="form-select" [(ngModel)]="selectedProizvod" required>
-          <option *ngFor="let proizvod of availableProizvodi" [ngValue]="proizvod">
-            {{ proizvod.nazivProizvoda }} - Cena: {{ proizvod.cena | number:'1.2-2' }}
+        <select [(ngModel)]="selectedProizvod">
+          <option *ngFor="let proizvod of proizvodi" [ngValue]="proizvod">
+            {{ proizvod.nazivProizvoda }} - {{ proizvod.cena }} RSD
           </option>
         </select>
-        <p *ngIf="availableProizvodi.length === 0">Nema proizvoda</p>
+        <p *ngIf="selectedProizvod">
+          Selected Product: {{ selectedProizvod.nazivProizvoda }} (ID: {{ selectedProizvod.ProizvodID }})
+        </p>
       </div>
 
       <!-- Input za količinu i popust -->
@@ -29,7 +31,7 @@
       <input type="number" class="form-control mt-2" [(ngModel)]="popust" placeholder="Popust (%)" />
 
       <!-- Dugme za dodavanje u korpu -->
-      <button class="btn btn-success mt-2" (click)="dodajUkorpu()">Dodaj u korpu</button>
+      <button class="btn btn-success mt-2" (click)="DodajUkorpu()">Dodaj u korpu</button>
 
       <div *ngIf="cart.length > 0">
         <h3>Proizvodi u Korpi</h3>
@@ -74,8 +76,6 @@
 
   <!-- Dugme za završavanje računa -->
   <div *ngIf="cart.length > 0">
-    <button class="btn btn-success mt-2"   (click)="createRacun()">Kreiraj Račun</button>
-    <!-- Dugme za završavanje računa -->
-  <button class="btn btn-success mt-2"   (click)="finalizeRacun()">Završi</button>
+    <button (click)="kreirajRacunSaStavkama()">Kreiraj Račun</button>
   </div>
 </div>

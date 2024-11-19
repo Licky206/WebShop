@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class RacunService {
   
-  private apiUrl = 'https://localhost:7164/KreirajRacunSaStavkama'; // Replace with your actual backend URL
+  private apiUrl = 'https://localhost:7164/api/Racun'; // Replace with your actual backend URL
 
   constructor(private http: HttpClient) { }
 

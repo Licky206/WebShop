@@ -1,10 +1,10 @@
-import { Component, input, OnInit } from '@angular/core';
+import { Component, input, numberAttribute, OnInit } from '@angular/core';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
-import { Proizvod, StavkeRacuna } from '../../models/models';
+import { Proizvod, RacunRequest, StavkeRacuna } from '../../models/models';
 import { ProizvodService } from '../shared/services/proizvod/services/proizvod.service';
 import { RacunService } from '../shared/services/racun.service';
 import { StavkeRacunaService } from '../shared/stavkeRacuna.service';
@@ -30,123 +30,111 @@ export class DashboardComponent implements OnInit {
     selectedQuantity: number = 1;
     selectedDiscount: number = 0;
 
-    constructor(private http: HttpClient, private router: Router, private proizvodService: ProizvodService,private racunService: RacunService ,  private stavkeRacunaService: StavkeRacunaService ) { }
+    constructor(private http: HttpClient, private router: Router, private proizvodService: ProizvodService, private racunService: RacunService, private stavkeRacunaService: StavkeRacunaService) { }
 
     ngOnInit() {
         this.loadProizvodi();
     }
 
-    loadProizvodi(): void {
-        this.proizvodService.getProizvodi().subscribe({
-            next: (data) => {
-                this.availableProizvodi = data;
-                console.log('Loaded products:', this.availableProizvodi);
-            },
-            error: (err) => console.error('Error loading products', err)
-        });
-    }
+    loadProizvodi() {
+        // Učitaj proizvode putem servisa (API poziv)
+        this.proizvodService.getProizvodi().subscribe(
+          (data) => {
+            this.proizvodi = data;
+            console.log('Učitali proizvode:', this.proizvodi);  // Debug: Proverite podatke
+          },
+          (error) => {
+            console.error('Greška pri učitavanju proizvoda:', error);
+          }
+        );
+      }
 
-    dodajUkorpu() {
-        if (this.selectedProizvod && this.kolicina > 0) {
-            const proizvodZaKorpu = {
-                proizvod: this.selectedProizvod,  // Proizvod je sada postavljen ispravno
-                kolicina: this.kolicina,
-                popust: this.popust || 0,
-            };
-            this.cart.push(proizvodZaKorpu); // Dodavanje proizvoda u korpu
-            console.log('Proizvod dodat u korpu:', proizvodZaKorpu);
-            console.log('Trenutni sadržaj korpe:', this.cart);
-            this.kolicina = 1; // Resetovanje količine nakon dodavanja
-            this.popust = 0; // Resetovanje popusta nakon dodavanja
-        } else {``
-            console.error('Nema proizvoda za dodavanje u korpu ili količina je nevalidna.');
-        }
-    }  
-    
-    
-    kreirajRacunSaStavkama() {
-        if (this.cart.length === 0) {
-          console.error('Korpa je prazna, ne mogu da kreiram račun');
-          return;
-        }
-    
-        if (this.racunId === null) {
-          console.error('Račun nije kreiran');
-          return;
-        }
-    }
-
-
-
-
-    finalizeRacun() {
-
-        if (this.racunId === null) {
-            console.error('Račun nije kreiran');
-            return;
-        }
-    
-        // Mapirajte stavke sa pretvorbom RacunID u broj
-        const stavke: StavkeRacuna[] = this.cart.map(item => ({
-            ProizvodID: item.proizvod.ProizvodID,
-            Kolicina: item.kolicina,
-            Popust: item.popust,
-            proizvod: item.proizvod, // Dodajte proizvod
-            RacunID: this.racunId as number // Pretvaramo null u number
-        }));
-        console.log("Podaci koji se šalju na server:", stavke);
-
-        this.stavkeRacunaService.addStavkeRacuna(this.racunId, stavke).subscribe({
-            next: () => {
-                console.log('Stavke uspešno dodate u račun');
-                this.cart = [];
-                this.racunId = null;
-            },
-            error: (err) => {
-                console.error('Greška prilikom dodavanja stavki u račun:', err);
-            }
-        });
-    }
-    
-    
 
     // Handle product selection from dropdown
     onProductSelect(event: Event) {
         const selectElement = event.target as HTMLSelectElement;
-        const selectedProductId = +selectElement.value; // ID izabranog proizvoda
-
-        // Pronađite proizvod na osnovu ID-a
+        const selectedProductId = +selectElement.value; // ID of the selected product
+    
         const proizvod = this.availableProizvodi.find(p => p.ProizvodID === selectedProductId);
-
+    
         if (proizvod) {
-            this.selectedProizvod = proizvod;
-            console.log('Izabran proizvod:', this.selectedProizvod);
+            this.selectedProizvod = proizvod;  // Ensure ProizvodID is set
+            this.selectedProductId = proizvod.ProizvodID;  // Ensure ProizvodID is set
+            console.log('Selected product:', this.selectedProizvod);
         } else {
-            console.error('Proizvod nije pronađen!');
-            this.selectedProizvod = null; // Ako nije pronađen, postavite na null
+            console.error('Product not found!');
+            this.selectedProizvod = null;  // Reset if not found
         }
     }
-
-    // Add selected product to cart
-    addToRacun(proizvodId: number | null, quantity: number, discount: number) {
-        if (proizvodId && quantity > 0) {
-            const selectedProduct = this.availableProizvodi.find(p => p.ProizvodID === proizvodId);
-            if (selectedProduct) {
-                this.cart.push({
-                    proizvod: selectedProduct,
-                    kolicina: quantity,
-                    popust: discount
-                });
-                // Reset selection
-                this.selectedProductId = null;
-                this.selectedQuantity = 1;
-                this.selectedDiscount = 0;
-                console.log('Product added to cart:', selectedProduct);
+    DodajUkorpu() {
+        console.log('Selected Product:', this.selectedProizvod);  // Dijagnostička provera
+        if (this.selectedProizvod && this.selectedProizvod.ProizvodID) {
+            const proizvodZaKorpu = {
+                proizvod: this.selectedProizvod,
+                kolicina: this.kolicina,
+                popust: this.popust || 0,
+            };
+    
+            this.cart.push(proizvodZaKorpu);  // Dodaj proizvod u korpu
+            console.log('Product added to cart:', proizvodZaKorpu);
+            console.log('Current cart contents:', this.cart);
+    
+            // Resetuj količinu i popust
+            this.kolicina = 1;
+            this.popust = 0;
+        } else {
+            console.error('Invalid ProductID for the selected product');
+        }
+    }
+    kreirajRacunSaStavkama() {
+        if (this.cart.length === 0) {
+            console.error('Korpa je prazna, ne mogu da kreiram račun');
+            return;
+        }
+    
+        const racunRequest = {
+            racun: [
+                {
+                    statusRacuna: 'U izradi',
+                    datum: new Date().toISOString()
+                }
+            ],
+            stavke: this.cart.map(item => {
+                // Proveri da li ProizvodID postoji, ako ne postavi na 0 ili null
+                if (!item.proizvod.ProizvodID) {
+                    console.error('ProizvodID is missing or invalid:', item);
+                    item.proizvod.ProizvodID = 0;  // Postavi na 0 ako nije validno
+                }
+                return {
+                    racunId: this.racunId || 0,  // Ako racunId nije postavljen, postavi 0
+                    proizvodID: item.proizvod.ProizvodID, // Pravilno postavljanje ProizvodID
+                    kolicina: item.kolicina,  // Preuzmi količinu iz stavke
+                    popust: item.popust  // Preuzmi popust iz stavke
+                };
+            })
+        };
+    
+        // Proveri kako izgleda request pre slanja
+        console.log('Racun Request:', JSON.stringify(racunRequest));
+    
+        // Pozivanje servisa za kreiranje računa sa stavkama
+        this.racunService.kreirajRacunSaStavkama(racunRequest).subscribe({
+            next: (response) => {
+                console.log('Invoice created successfully:', response);
+                this.cart = []; // Isprazni korpu nakon uspešnog kreiranja računa
+            },
+            error: (err) => {
+                console.error('Error creating invoice:', err);
             }
-        } else {
-            console.error('Invalid product or quantity');
-        }
+        });
     }
+    
+    
+
+
+
+    
+
     // In DashboardComponent
     deleteProductFromCart(proizvodId: number) {
         // Brisanje proizvoda iz korpe
@@ -178,4 +166,3 @@ export class DashboardComponent implements OnInit {
         this.router.navigateByUrl('/signup');
     }
 }
-

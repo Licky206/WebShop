@@ -4,6 +4,5 @@
     {
         public string StatusRacuna { get; set; }
         public DateTime? Datum { get; set; }
-        public TimeSpan? Vreme { get; set; }
     }
 }
