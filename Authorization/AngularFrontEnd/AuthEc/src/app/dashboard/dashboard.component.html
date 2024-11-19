@@ -20,7 +20,7 @@
           </option>
         </select>
         <p *ngIf="selectedProizvod">
-          Selected Product: {{ selectedProizvod.nazivProizvoda }} (ID: {{ selectedProizvod.ProizvodID }})
+          Selected Product: {{ selectedProizvod.nazivProizvoda }} (ID: {{ selectedProizvod.proizvodID }})
         </p>
       </div>
 
@@ -50,13 +50,13 @@
             <tr *ngFor="let item of cart">
               <td>{{ item.proizvod.nazivProizvoda }}</td>
               <td>
-                <input type="number" [(ngModel)]="item.kolicina" min="1" (change)="updateProductInCart(item.proizvod.ProizvodID, item.kolicina, item.popust)" class="quantity-input" />
+                <input type="number" [(ngModel)]="item.kolicina" min="1" (change)="updateProductInCart(item.proizvod.proizvodID, item.kolicina, item.popust)" class="quantity-input" />
               </td>
               <td>{{ item.proizvod.cena | number:'1.2-2' }}</td>
               <td>{{ item.popust }}%</td>
               <td>{{ (item.proizvod.cena * item.kolicina * (1 - item.popust / 100)) | number:'1.2-2' }}</td>
               <td>
-                <button (click)="deleteProductFromCart(item.proizvod.ProizvodID)" class="delete-btn">Obriši</button>
+                <button (click)="deleteProductFromCart(item.proizvod.proizvodID)" class="delete-btn">Obriši</button>
               </td>
             </tr>
           </tbody>

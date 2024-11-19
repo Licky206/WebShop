@@ -23,7 +23,7 @@ namespace Authorization.Services
             await _proizvodRepository.DeleteAsync(proizvodId);
         }
 
-        public async Task<IEnumerable<Proizvod>> GetProizvodAsync()
+        public async Task<IEnumerable<Proizvod>> GetAllAsync()
         {
             return await _proizvodRepository.GetAllAsync();
         }

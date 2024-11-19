@@ -8,7 +8,8 @@ import { Proizvod } from '../../../../../models/models';
   providedIn: 'root'
 })
 export class ProizvodService {
-  private apiUrl = 'https://localhost:7164/api/Proizvodi'; 
+  private apiUrl = 'https://localhost:7164/api/Proizvod/PROIZVODI'; 
+  
   constructor(private http: HttpClient) {}
 
   getProizvodi(): Observable<Proizvod[]> {

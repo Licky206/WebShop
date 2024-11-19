@@ -16,7 +16,8 @@ namespace Authorization.Repositories
         public async Task<IEnumerable<Proizvod>> GetAllAsync()
         {
             using var connection = new SqlConnection(_connectionString);
-            return await connection.QueryAsync<Proizvod>("GetProizvodi", commandType: System.Data.CommandType.StoredProcedure);
+            string query = " SELECT proizvodID, NazivProizvoda, Cena FROM Proizvod;";
+            return await connection.QueryAsync<Proizvod>(query);
         }
 
         public async Task AddAsync(string nazivProizvoda, decimal cena, int kolicina)

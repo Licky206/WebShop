@@ -18,7 +18,6 @@ import { StavkeRacunaService } from '../shared/stavkeRacuna.service';
 
 })
 export class DashboardComponent implements OnInit {
-    availableProizvodi: Proizvod[] = [];
     stavkeRacuna: StavkeRacuna[] = [];
     racunId: number | null = null;  // RacunID je broj ili null
     kolicina: number = 0;
@@ -26,7 +25,6 @@ export class DashboardComponent implements OnInit {
     popust: number = 0;
     cart: { proizvod: Proizvod; kolicina: number; popust: number }[] = [];
     selectedProizvod: Proizvod | null = null;
-    selectedProductId: number | null = null;
     selectedQuantity: number = 1;
     selectedDiscount: number = 0;
 
@@ -42,50 +40,42 @@ export class DashboardComponent implements OnInit {
           (data) => {
             this.proizvodi = data;
             console.log('Učitali proizvode:', this.proizvodi);  // Debug: Proverite podatke
+            // Uverite se da svaki proizvod ima ProizvodID
+            this.proizvodi.forEach(proizvod => {
+              if (!proizvod.proizvodID) {
+                console.error('Proizvod bez validnog ProizvodID:', proizvod);
+              }
+            });
           },
           (error) => {
             console.error('Greška pri učitavanju proizvoda:', error);
           }
         );
-      }
-
-
-    // Handle product selection from dropdown
-    onProductSelect(event: Event) {
-        const selectElement = event.target as HTMLSelectElement;
-        const selectedProductId = +selectElement.value; // ID of the selected product
-    
-        const proizvod = this.availableProizvodi.find(p => p.ProizvodID === selectedProductId);
-    
-        if (proizvod) {
-            this.selectedProizvod = proizvod;  // Ensure ProizvodID is set
-            this.selectedProductId = proizvod.ProizvodID;  // Ensure ProizvodID is set
-            console.log('Selected product:', this.selectedProizvod);
-        } else {
-            console.error('Product not found!');
-            this.selectedProizvod = null;  // Reset if not found
-        }
     }
-    DodajUkorpu() {
-        console.log('Selected Product:', this.selectedProizvod);  // Dijagnostička provera
-        if (this.selectedProizvod && this.selectedProizvod.ProizvodID) {
+    
+
+      DodajUkorpu() {
+        console.log('Selected Product:', this.selectedProizvod);  // Debug
+        if (this.selectedProizvod && this.selectedProizvod.proizvodID) {  // Use 'ProizvodID' (uppercase 'P')
             const proizvodZaKorpu = {
                 proizvod: this.selectedProizvod,
                 kolicina: this.kolicina,
                 popust: this.popust || 0,
             };
     
-            this.cart.push(proizvodZaKorpu);  // Dodaj proizvod u korpu
+            this.cart.push(proizvodZaKorpu);  // Add product to cart
             console.log('Product added to cart:', proizvodZaKorpu);
             console.log('Current cart contents:', this.cart);
     
-            // Resetuj količinu i popust
+            // Reset quantity and discount
             this.kolicina = 1;
             this.popust = 0;
         } else {
             console.error('Invalid ProductID for the selected product');
         }
     }
+    
+    
     kreirajRacunSaStavkama() {
         if (this.cart.length === 0) {
             console.error('Korpa je prazna, ne mogu da kreiram račun');
@@ -101,13 +91,13 @@ export class DashboardComponent implements OnInit {
             ],
             stavke: this.cart.map(item => {
                 // Proveri da li ProizvodID postoji, ako ne postavi na 0 ili null
-                if (!item.proizvod.ProizvodID) {
+                if (!item.proizvod.proizvodID) {
                     console.error('ProizvodID is missing or invalid:', item);
-                    item.proizvod.ProizvodID = 0;  // Postavi na 0 ako nije validno
+                    item.proizvod.proizvodID = 0;  // Postavi na 0 ako nije validno
                 }
                 return {
                     racunId: this.racunId || 0,  // Ako racunId nije postavljen, postavi 0
-                    proizvodID: item.proizvod.ProizvodID, // Pravilno postavljanje ProizvodID
+                    proizvodID: item.proizvod.proizvodID, // Pravilno postavljanje ProizvodID
                     kolicina: item.kolicina,  // Preuzmi količinu iz stavke
                     popust: item.popust  // Preuzmi popust iz stavke
                 };
@@ -138,7 +128,7 @@ export class DashboardComponent implements OnInit {
     // In DashboardComponent
     deleteProductFromCart(proizvodId: number) {
         // Brisanje proizvoda iz korpe
-        const index = this.cart.findIndex(item => item.proizvod.ProizvodID === proizvodId);
+        const index = this.cart.findIndex(item => item.proizvod.proizvodID === proizvodId);
         if (index !== -1) {
             this.cart.splice(index, 1);
             console.log(`Proizvod sa ID ${proizvodId} obrisan iz korpe`);
@@ -147,7 +137,7 @@ export class DashboardComponent implements OnInit {
     // In DashboardComponent
     updateProductInCart(proizvodId: number, kolicina: number, popust: number) {
         // Pronađi proizvod u korpi
-        const productIndex = this.cart.findIndex(item => item.proizvod.ProizvodID === proizvodId);
+        const productIndex = this.cart.findIndex(item => item.proizvod.proizvodID === proizvodId);
         if (productIndex !== -1) {
             this.cart[productIndex].kolicina = kolicina;
             this.cart[productIndex].popust = popust;

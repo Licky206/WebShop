@@ -18,17 +18,6 @@ namespace Authorization.Controllers
             _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
-
-        [HttpGet("Proizvodi")]
-        public async Task<ActionResult<IEnumerable<Proizvod>>> GetProizvodi()
-        {
-            using (var connection = new SqlConnection(_connectionString))
-            {
-                var proizvodi = await connection.QueryAsync<Proizvod>("GetProizvodi", commandType: CommandType.StoredProcedure);
-                return Ok(proizvodi);
-            }
-        }
-
         [HttpPost("Dodaj proizvode")]
         public async Task AddProizvod(string nazivProizvoda, decimal cena, int kolicina)
         {

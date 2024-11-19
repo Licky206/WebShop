@@ -1,15 +1,14 @@
 // src/app/models/models.ts
 
 export interface Proizvod {
-  ProizvodID: number; // Add this if it is part of your API response
+  proizvodID: number; // Add this if it is part of your API response
   nazivProizvoda: string;
   cena: number;
-  kolicina: number; // Optional, depending on your use case
 }
   
 export interface StavkeRacuna {
   RacunID: number;
-  ProizvodID: number;
+  proizvodID: number;
   kolicina: number;
   popust: number;
 }
