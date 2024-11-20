@@ -17,14 +17,37 @@ namespace Authorization.Services
             _memoryCache = memoryCache;
         }
 
+        public async Task<IEnumerable<Racun>> GetAllRacuniAsync()
+        {
+            return await _racunRepository.GetAllRacuniAsync();
+        }
+
+        public async Task<Racun> GetRacunByIdAsync(int racunId)
+        {
+            return await _racunRepository.GetRacunByIdAsync(racunId);
+        }
+
+        public async Task<bool> UpdateRacunStatusAsync(int racunId, string noviStatus)
+        {
+            return await _racunRepository.UpdateRacunStatusAsync(racunId, noviStatus);
+        }
+
+        public async Task<bool> DeleteRacunAsync(int racunId)
+        {
+            return await _racunRepository.DeleteRacunAsync(racunId);
+        }
+
+
         public async Task<bool> KreirajRacunSaStavkama(string statusRacuna, DateTime? datum,  IEnumerable<StavkeRacunaDTO> stavke)
         {
-            string cacheKey = $"Racun_{statusRacuna}_{datum?.ToString("yyyyMMdd")}";
-            if (_memoryCache.TryGetValue(cacheKey, out bool cachedResult))
-            {
-                return cachedResult;
-            }
+            //string cacheKey = $"Racun_{statusRacuna}_{datum?.ToString("yyyyMMdd")}";
+            //if (_memoryCache.TryGetValue(cacheKey, out bool cachedResult))
+            //{
+            //    return cachedResult;
+            //}
 
+            
+            
             var stavkeTable = new DataTable();
             stavkeTable.Columns.Add("RacunId", typeof(int));
             stavkeTable.Columns.Add("ProizvodID", typeof(int));
@@ -44,9 +67,14 @@ namespace Authorization.Services
                 SlidingExpiration = TimeSpan.FromMinutes(5)
             };
 
-            _memoryCache.Set(cacheKey, result > 0, cacheEntryOptions);
+            //_memoryCache.Set(cacheKey, result > 0, cacheEntryOptions);
 
             return result > 0;
+        }
+
+        public async Task<IEnumerable<StavkeRacuna>> GetStavkeByRacunIdAsync(int racunId)
+        {
+            return await _racunRepository.GetStavkeByRacunIdAsync(racunId);
         }
     }
 }

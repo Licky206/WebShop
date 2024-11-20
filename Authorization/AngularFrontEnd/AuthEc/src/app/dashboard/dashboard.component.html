@@ -79,3 +79,68 @@
     <button (click)="kreirajRacunSaStavkama()">Kreiraj Račun</button>
   </div>
 </div>
+
+<div class="container">
+  <h2>Računi</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Racun ID</th>
+        <th>Status Računa</th>
+        <th>Datum</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let racun of racuni" (click)="fetchStavke(racun.racunId)">
+        <td>{{ racun.racunId }}</td>
+        <td>{{ racun.statusRacuna }}</td>
+        <td>{{ racun.datum | date }}</td>
+      </tr>
+    </tbody>
+  </table>
+  
+
+  <div *ngIf="isStavkeModalVisible" class="modal-overlay">
+    <div class="modal-content">
+    <h3>Stavke za Račun ID: {{ selectedRacunId }}</h3>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Proizvod ID</th>
+          <th>Količina</th>
+          <th>Popust</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let stavka of stavke">
+          <td>{{ stavka.nazivProizvoda  }}</td>
+          <td>{{ stavka.kolicina }}</td>
+          <td>{{ stavka.popust }}%</td>
+        </tr>
+      </tbody>
+    </table>
+    <button class="btn btn-secondary" (click)="closeStavkeModeal()">Close</button>
+  </div>
+</div>
+
+<style>
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 70%;
+    max-height: 80%;
+    overflow-y: auto;
+  }
+</style>

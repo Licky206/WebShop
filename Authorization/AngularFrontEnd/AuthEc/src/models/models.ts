@@ -7,7 +7,7 @@ export interface Proizvod {
 }
   
 export interface StavkeRacuna {
-  RacunID: number;
+  racunId: number;
   proizvodID: number;
   kolicina: number;
   popust: number;

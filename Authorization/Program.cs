@@ -45,6 +45,7 @@ builder.Services.AddScoped<IRacunRepository, RacunRepository>();
 
 
 
+
 //dodavanje authentikacije
 builder.Services.AddAuthentication(x =>
 {

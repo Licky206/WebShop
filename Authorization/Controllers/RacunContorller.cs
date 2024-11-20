@@ -18,6 +18,7 @@ namespace Authorization.Controllers
             _racunService = racunService;
         }
 
+        //Kreiranje StavkeRacuna
         [HttpPost("KreirajRacunSaStavkama")]
         public async Task<IActionResult> KreirajRacunSaStavkama([FromBody] BulkInsertRequest request)
         {
@@ -27,7 +28,7 @@ namespace Authorization.Controllers
             }
 
             foreach (var racun in request.racun)
-            { 
+            {
 
                 var zahtev = await _racunService.KreirajRacunSaStavkama(racun.StatusRacuna, racun.Datum, request.stavke);
 
@@ -38,6 +39,68 @@ namespace Authorization.Controllers
             }
 
             return Ok(new { message = "Success" });
+        }
+
+        //Uzimanje Stavke po Racun ID
+        [HttpGet("GetStavkeByRacunId/{racunId}")]
+        public async Task<ActionResult<IEnumerable<StavkeRacuna>>> GetStavkeByRacunId(int racunId)
+        {
+            var stavke = await _racunService.GetStavkeByRacunIdAsync(racunId);
+            if (stavke == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(stavke);
+        }
+
+
+        [HttpGet("GetAllRacuni")]
+        public async Task<ActionResult<IEnumerable<Racun>>> GetAllRacuni()
+        {
+            var racuni = await _racunService.GetAllRacuniAsync();
+            return Ok(racuni);
+        }
+
+        [HttpGet("GetRacunById/{racunId}")]
+        public async Task<ActionResult<Racun>> GetRacunById(int racunId)
+        {
+            var racun = await _racunService.GetRacunByIdAsync(racunId);
+            if (racun == null)
+            {
+                return NotFound();
+            }
+            return Ok(racun);
+
+        }
+
+        [HttpPut("UpdateRacunStatus/{racunId}")]
+        public async Task<IActionResult> UpdateRacunStatus(int racunId, [FromBody] string noviStatus)
+        {
+            if (string.IsNullOrEmpty(noviStatus))
+            {
+                return BadRequest("Status cannot be empty.");
+            }
+
+            var result = await _racunService.UpdateRacunStatusAsync(racunId, noviStatus);
+            if (!result)
+            {
+                return NotFound("Invoice not found or status not updated.");
+            }
+
+            return Ok(new { message = "Status updated successfully." });
+        }
+
+        [HttpDelete("DeleteRacun/{racunId}")]
+        public async Task<IActionResult> DeleteRacun(int racunId)
+        {
+            var result = await _racunService.DeleteRacunAsync(racunId);
+            if (!result)
+            {
+                return NotFound("Invoice not found or could not be deleted.");
+            }
+
+            return Ok(new { message = "Invoice deleted successfully." });
         }
 
     }

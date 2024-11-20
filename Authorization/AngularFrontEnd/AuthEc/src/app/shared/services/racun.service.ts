@@ -14,5 +14,13 @@ export class RacunService {
   kreirajRacunSaStavkama(request: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/KreirajRacunSaStavkama`, request);
   }
+
+  getAllRacuni(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/GetAllRacuni`);
+  }
+
+  getStavkeByRacunId(racunId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/GetStavkeByRacunId/${racunId}`);
+  }
   
 }
