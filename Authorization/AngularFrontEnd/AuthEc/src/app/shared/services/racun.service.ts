@@ -9,7 +9,9 @@ export class RacunService {
   
   private apiUrl = 'https://localhost:7164/api/Racun'; // Replace with your actual backend URL
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {
+    
+   }
 
   kreirajRacunSaStavkama(request: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/KreirajRacunSaStavkama`, request);
