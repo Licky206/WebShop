@@ -73,23 +73,23 @@ namespace Authorization.Controllers
             return Ok(racun);
 
         }
-
-        [HttpPut("UpdateRacunStatus/{racunId}")]
-        public async Task<IActionResult> UpdateRacunStatus(int racunId, [FromBody] string noviStatus)
+        [HttpGet("UpdateRacunStatus/{racunId}/{newStatus}")]
+        public async Task<IActionResult>UpdateRacunStatus(int racunId, string newStatus)
         {
-            if (string.IsNullOrEmpty(noviStatus))
-            {
-                return BadRequest("Status cannot be empty.");
-            }
+ 
+            var result = await _racunService.UpdateRacunStatusAsync(racunId, newStatus);
 
-            var result = await _racunService.UpdateRacunStatusAsync(racunId, noviStatus);
-            if (!result)
+            if (result)
             {
-                return NotFound("Invoice not found or status not updated.");
+                return Ok(true);
             }
-
-            return Ok(new { message = "Status updated successfully." });
+            else
+            {
+                return NotFound("Invoice not found.");
+            }
         }
+
+
 
         [HttpDelete("DeleteRacun/{racunId}")]
         public async Task<IActionResult> DeleteRacun(int racunId)

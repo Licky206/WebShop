@@ -80,6 +80,7 @@
   </div>
 </div>
 
+<!-- Računi Table -->
 <div class="container">
   <h2>Računi</h2>
   <table class="table">
@@ -88,6 +89,7 @@
         <th>Racun ID</th>
         <th>Status Računa</th>
         <th>Datum</th>
+        <th>Akcija</th> <!-- New column for actions -->
       </tr>
     </thead>
     <tbody>
@@ -95,31 +97,45 @@
         <td>{{ racun.racunId }}</td>
         <td>{{ racun.statusRacuna }}</td>
         <td>{{ racun.datum | date }}</td>
+
+        <!-- Delete Button -->
+        <button class="btn btn-danger" (click)="deleteRacun(racun.racunId)">Obriši</button>
+
+        <!-- Edit Button -->
+        <button class="btn btn-warning" (click)="editRacun(racun, $event)">Edit</button>
+
+
+        <!-- Edit Status Input -->
+        <input *ngIf="selectedRacunId === racun.racunId" [(ngModel)]="newStatus" class="form-control mt-2" placeholder="Enter new status" />
+
+        <!-- Save Button to Update Status -->
+        <button *ngIf="selectedRacunId === racun.racunId" class="btn btn-success mt-2" (click)="updateRacunStatus(racun.racunId, newStatus)">Save</button>
+        
       </tr>
     </tbody>
   </table>
-  
 
   <div *ngIf="isStavkeModalVisible" class="modal-overlay">
     <div class="modal-content">
-    <h3>Stavke za Račun ID: {{ selectedRacunId }}</h3>
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Proizvod ID</th>
-          <th>Količina</th>
-          <th>Popust</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let stavka of stavke">
-          <td>{{ stavka.nazivProizvoda  }}</td>
-          <td>{{ stavka.kolicina }}</td>
-          <td>{{ stavka.popust }}%</td>
-        </tr>
-      </tbody>
-    </table>
-    <button class="btn btn-secondary" (click)="closeStavkeModeal()">Close</button>
+      <h3>Stavke za Račun ID: {{ selectedRacunId }}</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Proizvod ID</th>
+            <th>Količina</th>
+            <th>Popust</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let stavka of stavke">
+            <td>{{ stavka.nazivProizvoda  }}</td>
+            <td>{{ stavka.kolicina }}</td>
+            <td>{{ stavka.popust }}%</td>
+          </tr>
+        </tbody>
+      </table>
+      <button class="btn btn-secondary" (click)="closeStavkeModeal()">Close</button>
+    </div>
   </div>
 </div>
 

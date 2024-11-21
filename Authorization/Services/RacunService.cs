@@ -27,10 +27,6 @@ namespace Authorization.Services
             return await _racunRepository.GetRacunByIdAsync(racunId);
         }
 
-        public async Task<bool> UpdateRacunStatusAsync(int racunId, string noviStatus)
-        {
-            return await _racunRepository.UpdateRacunStatusAsync(racunId, noviStatus);
-        }
 
         public async Task<bool> DeleteRacunAsync(int racunId)
         {
@@ -45,8 +41,6 @@ namespace Authorization.Services
             //{
             //    return cachedResult;
             //}
-
-            
             
             var stavkeTable = new DataTable();
             stavkeTable.Columns.Add("RacunId", typeof(int));
@@ -71,10 +65,15 @@ namespace Authorization.Services
 
             return result > 0;
         }
+        public async Task<bool> UpdateRacunStatusAsync(int racunId, string newStatus)
+        {
+            return await _racunRepository.UpdateRacunStatusAsync(racunId, newStatus);
+        }
 
         public async Task<IEnumerable<StavkeRacuna>> GetStavkeByRacunIdAsync(int racunId)
         {
             return await _racunRepository.GetStavkeByRacunIdAsync(racunId);
         }
+ 
     }
 }

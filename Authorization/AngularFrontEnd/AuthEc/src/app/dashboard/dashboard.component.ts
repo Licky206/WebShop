@@ -31,7 +31,7 @@ export class DashboardComponent implements OnInit {
     stavke: any[] = [];
     selectedRacunId: number | null = null;
     isStavkeModalVisible: boolean = false;
-
+    newStatus: string = '';  // New status for the invoice
 
     constructor(private http: HttpClient, private router: Router, private proizvodService: ProizvodService, private racunService: RacunService, private stavkeRacunaService: StavkeRacunaService) { }
 
@@ -117,7 +117,58 @@ export class DashboardComponent implements OnInit {
         });
     }
 
+    
+    
 
+      
+      
+      deleteRacun(racunId: number): void {
+        if (confirm('Da li ste sigurni da želite da obrišete račun?')) {
+          this.racunService.deleteRacun(racunId).subscribe({
+            next: () => {
+              console.log(`Račun ${racunId} uspešno obrisan`);
+              this.fetchRacuni(); // Osvetljavanje liste računa
+            },
+            error: (err) => {
+              console.error('Greška pri brisanju računa:', err);
+            }
+          });
+        }
+      }
+
+      updateRacunStatus(racunId: number, newStatus: string) {
+        if (!newStatus) {
+          alert('Please enter a valid status.');
+          return;
+        }
+        const statusUpdateRequest = { newStatus: newStatus };
+
+          console.log('Sending request:', statusUpdateRequest);  // Log to verify the payload
+
+        // Call your service to update the status in the database
+        this.racunService.updateRacunStatus(racunId, newStatus).subscribe({
+          next: (response) => {
+            if (response) {
+              alert('Status updated successfully!');
+              this.fetchRacuni();  // Reload the invoices list
+              this.selectedRacunId = null;  // Reset selection
+            } else {
+              alert('Failed to update status');
+            }
+          },
+          error: (err) => {
+            console.error('Error updating status:', err);
+            alert('An error occurred while updating the status.');
+          }
+        });
+      }
+      
+    editRacun(racun: any, event: Event) {
+        event.stopPropagation();
+        this.selectedRacunId = racun.racunId;
+        this.newStatus = racun.statusRacuna;  // Pre-fill the input with the current status
+      }      
+    
 
     //logika za prikaz racuna:
     fetchRacuni(): void {
@@ -126,7 +177,7 @@ export class DashboardComponent implements OnInit {
         });
       }
     
-      fetchStavke(racunId: number): void {
+    fetchStavke(racunId: number): void {
         this.selectedRacunId = racunId;
         this.racunService.getStavkeByRacunId(racunId).subscribe((data) => {
             this.stavke = data.map(stavka => {

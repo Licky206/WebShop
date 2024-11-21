@@ -5,6 +5,12 @@ export interface Proizvod {
   nazivProizvoda: string;
   cena: number;
 }
+// src/app/models/racun-dto.model.ts
+export class RacunDTO {
+  statusRacuna: string | undefined;
+  datum?: Date;
+}
+
   
 export interface StavkeRacuna {
   racunId: number;

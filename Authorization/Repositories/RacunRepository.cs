@@ -33,17 +33,16 @@ namespace Authorization.Repositories
             }
         }
 
-        public async Task<bool> UpdateRacunStatusAsync(int racunId, string noviStatus)
-        {
-            using (var connection = new SqlConnection(_connectionString))
+        public async Task<bool> UpdateRacunStatusAsync(int racunId, string newStatus)
+        { 
+            using(var connection = new SqlConnection(_connectionString))
             {
-                var query = @"
-                UPDATE Racun
-                SET StatusRacuna = @StatusRacuna
-                WHERE RacunId = @RacunId";
+                await connection.OpenAsync();
+                var parametars = new {RacunID = racunId, NewStatus = newStatus};
 
-                var affectedRows = await connection.ExecuteAsync(query, new { StatusRacuna = noviStatus, RacunId = racunId });
-                return affectedRows > 0;
+                var result = await connection.ExecuteAsync("EXEC UpdateRacunStatus @RacunID, @NewStatus", parametars);
+
+                return result > 0;
             }
         }
 

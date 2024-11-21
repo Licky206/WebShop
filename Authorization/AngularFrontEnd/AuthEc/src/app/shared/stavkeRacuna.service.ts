@@ -17,7 +17,7 @@ import { RacunRequest, StavkeRacuna } from '../../models/models';  // Adjust the
   
 
     kreirajRacunSaStavkama(racunRequest: RacunRequest): Observable<any> {
-      const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+      const headers = new HttpHeaders().set('Content-Type', 'application/json');
       return this.http.post<any>(`${this.apiUrl}/KreirajRacunSaStavkama`, racunRequest, { headers }); // Ispravan URL sa 'api/Racun'
     }
 }

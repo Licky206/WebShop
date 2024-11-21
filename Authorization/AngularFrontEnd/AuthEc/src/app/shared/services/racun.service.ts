@@ -22,5 +22,12 @@ export class RacunService {
   getStavkeByRacunId(racunId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/GetStavkeByRacunId/${racunId}`);
   }
-  
+  deleteRacun(racunId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/DeleteRacun/${racunId}`);
+  }
+
+  updateRacunStatus(racunId: number, newStatus: string): Observable<boolean> {
+    return this.http.get<boolean>(`${this.apiUrl}/UpdateRacunStatus/${racunId}/${newStatus}`);
+  }
+    
 }
