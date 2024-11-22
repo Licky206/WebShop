@@ -31,6 +31,11 @@ export class DashboardComponent implements OnInit {
     stavke: any[] = [];
     selectedRacunId: number | null = null;
     isStavkeModalVisible: boolean = false;
+    isSwitchOn: boolean = false; // Tracks switch state
+    statusiRacuni = [ 'U izradi', 'FISKALIZIRAN', 'STORNIRAN' ];
+    
+
+
     newStatus: string = '';  // New status for the invoice
 
     constructor(private http: HttpClient, private router: Router, private proizvodService: ProizvodService, private racunService: RacunService, private stavkeRacunaService: StavkeRacunaService) { }
@@ -41,7 +46,6 @@ export class DashboardComponent implements OnInit {
     }
 
     loadProizvodi() {
-    
         this.proizvodService.getProizvodi().subscribe(
           (data) => {
             this.proizvodi = data;
@@ -58,26 +62,46 @@ export class DashboardComponent implements OnInit {
         );
     }
     
-
-      DodajUkorpu() {
-        console.log('Selected Product:', this.selectedProizvod);  
-        if (this.selectedProizvod && this.selectedProizvod.proizvodID) { 
-            const proizvodZaKorpu = {
-                proizvod: this.selectedProizvod,
-                kolicina: this.kolicina,
-                popust: this.popust || 0,
-            };
-    
-            this.cart.push(proizvodZaKorpu);  
-            console.log('Product added to cart:', proizvodZaKorpu);
-            console.log('Current cart contents:', this.cart);
-    
-            this.kolicina = 1;
-            this.popust = 0;
-        } else {
-            console.error('Invalid ProductID for the selected product');
-        }
-    }
+    DodajUkorpu() {
+      if (this.selectedProizvod && this.selectedProizvod.proizvodID) {
+          const kolicinaString = this.kolicina.toString();
+          const popustString = this.popust.toString();
+  
+          if (kolicinaString.length > 8) {
+              console.error('Količina ne može imati više od 8 cifara.');
+              alert('Količina ne može imati više od 8 cifara.');
+              return;
+          }
+  
+          if (popustString.length > 8) {
+              console.error('Popust ne može imati više od 8 cifara.');
+              alert('Popust ne može imati više od 8 cifara.');
+              return;
+          }
+  
+          // Vaša logika za dodavanje u korpu
+          const existingItem = this.cart.find(
+              (item) =>
+                  item.proizvod.proizvodID === this.selectedProizvod?.proizvodID &&
+                  item.popust === this.popust
+          );
+  
+          if (existingItem) {
+              existingItem.kolicina += this.kolicina;
+          } else {
+              this.cart.push({
+                  proizvod: this.selectedProizvod,
+                  kolicina: this.kolicina,
+                  popust: this.popust || 0,
+              });
+          }
+          this.kolicina = 1;
+          this.popust = 0;
+      } else {
+          console.error('Invalid ProductID for the selected product');
+      }
+  }
+  
     
     
     kreirajRacunSaStavkama() {
@@ -86,7 +110,7 @@ export class DashboardComponent implements OnInit {
             return;
         }
     
-        const racunRequest = {
+        const racunRequest = {        
             racun: [
                 {
                     statusRacuna: 'U izradi',
@@ -104,8 +128,6 @@ export class DashboardComponent implements OnInit {
         };
     
         console.log('Racun Request:', JSON.stringify(racunRequest));
-    
-        // Pozivanje servisa 
         this.racunService.kreirajRacunSaStavkama(racunRequest).subscribe({
             next: (response) => {
                 console.log('Invoice created successfully:', response);
@@ -117,12 +139,7 @@ export class DashboardComponent implements OnInit {
         });
     }
 
-    
-    
-
-      
-      
-      deleteRacun(racunId: number): void {
+    deleteRacun(racunId: number): void {
         if (confirm('Da li ste sigurni da želite da obrišete račun?')) {
           this.racunService.deleteRacun(racunId).subscribe({
             next: () => {
@@ -178,6 +195,13 @@ export class DashboardComponent implements OnInit {
       }
     
     fetchStavke(racunId: number): void {
+
+      if (!this.isSwitchOn) {
+        console.log("Switch je Off, tako da Stavke se nece prikazati");
+        return;
+      }
+
+
         this.selectedRacunId = racunId;
         this.racunService.getStavkeByRacunId(racunId).subscribe((data) => {
             this.stavke = data.map(stavka => {
@@ -191,10 +215,19 @@ export class DashboardComponent implements OnInit {
             this.isStavkeModalVisible = true;
         });
     }
-    
 
+    onToggleSwitch(): void {
+      if (this.isSwitchOn) {
+        this.isStavkeModalVisible = false;
+      }
+  }
+  
+    showStavkeModel(racunId: number): void{
+      if(!this.isSwitchOn)return;
 
-
+      this.selectedRacunId = racunId;
+      this.fetchStavke(racunId);
+    }
 
     // In DashboardComponent
     deleteProductFromCart(proizvodId: number) {
@@ -216,13 +249,137 @@ export class DashboardComponent implements OnInit {
             console.error("Proizvod nije pronađen u korpi.");
         }
     }
+
+    //RacunStatus logic
+
+    canEdit(status: string): boolean {
+      return status === 'U izradi' || status === 'FISKALIZIRAN';
+    }
+    
+    canDelete(status: string): boolean {
+      return status === 'STORNIRAN';
+    }
+    
+    canChangeToFiskaliziran(status: string): boolean {
+      return status === 'U izradi';
+    }
+    
+    canChangeToStorniran(status: string): boolean {
+      return status === 'FISKALIZIRAN';
+    }
+    
+    changeStatus( racunId: number, newStatus: string):void  {
+
+      const racun = this.racuni.find(r => r.id === racunId);
+
+      if (!racun) {
+        console.error('Racun nije pronadjen');
+        return
+      }
+        // Validacija promene statusa
+      if (
+        (newStatus === 'FISKALIZIRAN' && !this.canChangeToFiskaliziran(racun.statusRacuna)) ||
+        (newStatus === 'STORNIRAN' && !this.canChangeToStorniran(racun.statusRacuna))
+      ) {
+        console.error('Nije dozvoljena promena statusa na ovaj način.');
+        return;
+      }
+
+
+      racun.statusRacuna = newStatus;
+      this.racunService.updateRacunStatus(racunId, newStatus).subscribe(
+        () => {
+          console.log(`Status računa ID: ${racunId} promenjen u ${newStatus}`);
+        },
+        (error) => {
+          console.error('Greška prilikom promene statusa:', error);
+        }
+      );
+
+
+
+    }
+
+
+
+    canChangeStatus(currentStatus: string): string[] {
+      switch (currentStatus) {
+        case 'U izradi':
+          return ['FISKALIZIRAN']; 
+        case 'FISKALIZIRAN':
+          return ['STORNIRAN'];
+        case 'STORNIRAN':
+          return [];
+        default:
+          return [];
+      }
+    }
+
+    onStatusChange(racunId: number, newStatus: string): void {
+      // Logika za promenu statusa
+      const racun = this.racuni.find(r => r.id === racunId);
+      if (racun && this.canChangeStatus(racun.statusRacuna).includes(newStatus)) {
+        racun.statusRacuna = newStatus;
+        this.racunService.updateRacunStatus(racunId, newStatus).subscribe(
+          () => {
+            console.log(`Status računa ID: ${racunId} promenjen u ${newStatus}`);
+          },
+          (error) => {
+            console.error('Greška prilikom promene statusa:', error);
+          }
+        );
+      } else {
+        console.error('Nije dozvoljena promena statusa u odabrani status.');
+      }
+    }
+
     onLogout() {
         localStorage.removeItem('token');
         this.router.navigateByUrl('/signup');
     }
-
-
     closeStavkeModeal(){
         this.isStavkeModalVisible = false;
     }
+
+    refreshPage(): void {
+      window.location.reload();
+        this.loadProizvodi(); // Osveži proizvode
+        this.fetchRacuni();   // Osveži račune
+        this.cart = []; 
+    }
+
+    onKolicinaInput(event: Event): void {
+      const inputElement = event.target as HTMLInputElement;
+  
+      // Dozvoljava samo do 8 cifara
+      if (inputElement.value.length > 8) {
+          inputElement.value = inputElement.value.slice(0, 8);
+      }
+  
+      // Ažurirajte vrednost modela (u slučaju da koristite [(ngModel)])
+      this.kolicina = Number(inputElement.value);
+  }
+
+  get ukupnaCena(): number {
+    return this.cart.reduce((total, item) => {
+      const itemCena = item.proizvod.cena * item.kolicina * (1 - item.popust / 100);
+      return total + itemCena;
+    }, 0);
+  }
+  
+  onPopustInput(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+
+    // Ograničenje na maksimalnih 90
+    if (Number(inputElement.value) > 90) {
+        inputElement.value = '90';
+    }
+
+    // Ažurirajte vrednost modela (u slučaju da koristite [(ngModel)])
+    this.popust = Number(inputElement.value);
+}
+
+
+ 
+ 
 }

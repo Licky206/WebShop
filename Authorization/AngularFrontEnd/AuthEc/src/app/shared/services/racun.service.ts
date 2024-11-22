@@ -13,7 +13,7 @@ export class RacunService {
     
    }
 
-  kreirajRacunSaStavkama(request: any): Observable<any> {
+  kreirajRacunSaStavkama(request: any,): Observable<any> {
     return this.http.post(`${this.apiUrl}/KreirajRacunSaStavkama`, request);
   }
 

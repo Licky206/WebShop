@@ -8,8 +8,7 @@
   </div>
 
   <div class="row mt-4">
-    <div class="col-lg-3">
-      <h4>Dodaj Proizvod u Korpu</h4>
+    <div class="col-lg-3"> 
 
       <!-- Dropdown za odabir proizvoda -->
       <div>
@@ -26,9 +25,32 @@
 
       <!-- Input za količinu i popust -->
       <label>Količina: </label>
-      <input type="number" class="form-control mt-2" [(ngModel)]="kolicina" placeholder="Unesite količinu" />
+      <div>
+        <input 
+          type="number" 
+          id="kolicina" 
+          [(ngModel)]="kolicina" 
+          maxlength="8" 
+          (input)="onKolicinaInput($event)"
+          min="1"
+          step="1"
+        >
+      </div>
+      
+
       <label>Popust: </label>
-      <input type="number" class="form-control mt-2" [(ngModel)]="popust" placeholder="Popust (%)" />
+      <div> 
+        <input 
+          type="number" 
+          id="popust" 
+          [(ngModel)]="popust" 
+          max="90" 
+          (input)="onPopustInput($event)"
+          min="0"
+          step="1"
+        >
+      </div>
+
 
       <!-- Dugme za dodavanje u korpu -->
       <button class="btn btn-success mt-2" (click)="DodajUkorpu()">Dodaj u korpu</button>
@@ -55,6 +77,7 @@
               <td>{{ item.proizvod.cena | number:'1.2-2' }}</td>
               <td>{{ item.popust }}%</td>
               <td>{{ (item.proizvod.cena * item.kolicina * (1 - item.popust / 100)) | number:'1.2-2' }}</td>
+
               <td>
                 <button (click)="deleteProductFromCart(item.proizvod.proizvodID)" class="delete-btn">Obriši</button>
               </td>
@@ -75,14 +98,36 @@
   </div>
 
   <!-- Dugme za završavanje računa -->
-  <div *ngIf="cart.length > 0">
-    <button (click)="kreirajRacunSaStavkama()">Kreiraj Račun</button>
+  <div class="text-center mt-4" *ngIf="cart.length > 0">
+    <button 
+      class="btn btn-primary btn-lg px-5" 
+      (click)="kreirajRacunSaStavkama()">
+      <i class="bi bi-file-earmark-plus"></i> Kreiraj Račun
+    </button>
   </div>
 </div>
 
 <!-- Računi Table -->
 <div class="container">
   <h2>Računi</h2>
+
+  <div>
+    <label class="switch">
+      <input type="checkbox" [(ngModel)]="isSwitchOn" (change)="onToggleSwitch()" />
+      <span class="slider"></span>
+    </label>
+
+
+    <div class="d-flex align-items-center">
+      <button class="btn btn-primary me-2" (click)="isSwitchOn = !isSwitchOn">
+          {{ isSwitchOn ? 'Hide Stavke' : 'Hide Stavke' }}
+      </button>
+      <button class="btn btn-secondary" (click)="refreshPage()">Refresh</button>
+  </div>
+  
+
+  </div>
+
   <table class="table">
     <thead>
       <tr>
@@ -97,6 +142,7 @@
         <td>{{ racun.racunId }}</td>
         <td>{{ racun.statusRacuna }}</td>
         <td>{{ racun.datum | date }}</td>
+        
 
         <!-- Delete Button -->
         <button class="btn btn-danger" (click)="deleteRacun(racun.racunId)">Obriši</button>
@@ -104,9 +150,14 @@
         <!-- Edit Button -->
         <button class="btn btn-warning" (click)="editRacun(racun, $event)">Edit</button>
 
-
-        <!-- Edit Status Input -->
-        <input *ngIf="selectedRacunId === racun.racunId" [(ngModel)]="newStatus" class="form-control mt-2" placeholder="Enter new status" />
+        <!-- Dropdown for Status Change -->
+        <div *ngIf="selectedRacunId === racun.racunId">
+          <select [(ngModel)]="newStatus" (ngModelChange)="onStatusChange(racun.racunId, newStatus)">
+            <option *ngFor="let status of canChangeStatus(racun.statusRacuna)" [value]="status">
+              {{ status }}
+            </option>
+          </select>
+        </div>
 
         <!-- Save Button to Update Status -->
         <button *ngIf="selectedRacunId === racun.racunId" class="btn btn-success mt-2" (click)="updateRacunStatus(racun.racunId, newStatus)">Save</button>
@@ -115,7 +166,7 @@
     </tbody>
   </table>
 
-  <div *ngIf="isStavkeModalVisible" class="modal-overlay">
+  <div *ngIf=" isSwitchOn && isStavkeModalVisible" class="modal-overlay">
     <div class="modal-content">
       <h3>Stavke za Račun ID: {{ selectedRacunId }}</h3>
       <table class="table">
