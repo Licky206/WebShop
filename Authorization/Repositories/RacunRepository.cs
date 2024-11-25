@@ -82,6 +82,42 @@ namespace Authorization.Repositories
                 );
             }
         }
+        public async Task<decimal> GetUkupnaCenaRacunaAsync(int racunId)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@RacunId", racunId);
+                parameters.Add("@UkupnaCena", dbType: DbType.Decimal, direction: ParameterDirection.Output);
 
+                await connection.ExecuteAsync("GetUkupnaCenaRacuna", parameters, commandType: CommandType.StoredProcedure);
+
+                return parameters.Get<decimal>("@UkupnaCena");
+            }
+        }
+        public async Task<bool> UpdateStavkaAsync(int stavkaId, int newKolicina, decimal newPopust)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                var query = @"
+                    UPDATE StavkeRacuna
+                    SET Kolicina = @NewKolicina, Popust = @NewPopust
+                    WHERE StavkeRacunaID = @StavkaId";
+
+                var affectedRows = await connection.ExecuteAsync(query, new
+                {
+                    StavkaId = stavkaId,
+                    NewKolicina = newKolicina,
+                    NewPopust = newPopust
+                });
+
+                return affectedRows > 0;
+            } 
+        }
+
+        public Task<bool> UpdateStavkeRacunaAsync(int stavkaId, int newKolicina, decimal newPopust)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

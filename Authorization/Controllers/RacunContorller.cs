@@ -103,5 +103,31 @@ namespace Authorization.Controllers
             return Ok(new { message = "Invoice deleted successfully." });
         }
 
+        [HttpGet("ukupna-cena/{racunId}")]
+        public async Task<IActionResult> GetUkupnaCenaRacuna(int racunId)
+        {
+            try
+            {
+                var ukupnaCena = await _racunService.GetUkupnaCenaRacunaAsync(racunId);
+                return Ok(new { RacunId = racunId, UkupnaCena = ukupnaCena });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Greška: {ex.Message}");
+            }
+        }
+
+        [HttpGet("update-stavka")]
+        public async Task<IActionResult> UpdateStavkaAsync(int stavkaId, int newKolicina, decimal newPopust)
+        {
+            var result = await _racunService.UpdateStavkaAsync( stavkaId, newKolicina, newPopust);
+
+            if (result)
+            {
+                return Ok(new { message = "Stavka uspešno ažurirana." });
+            }
+            return BadRequest(new { message = "Došlo je do greške pri ažuriranju stavke." });
+        }
+
     }
 }

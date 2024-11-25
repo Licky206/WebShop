@@ -74,6 +74,14 @@ namespace Authorization.Services
         {
             return await _racunRepository.GetStavkeByRacunIdAsync(racunId);
         }
- 
+        public async Task<decimal> GetUkupnaCenaRacunaAsync(int racunId)
+        {
+            return await _racunRepository.GetUkupnaCenaRacunaAsync(racunId);
+        }
+        public async Task<bool> UpdateStavkaAsync(int stavkaId, int newKolicina, decimal newPopust)
+        {
+            return await _racunRepository.UpdateStavkaAsync(stavkaId, newKolicina, newPopust);
+        }
+
     }
 }

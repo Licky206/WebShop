@@ -120,7 +120,7 @@
 
     <div class="d-flex align-items-center">
       <button class="btn btn-primary me-2" (click)="isSwitchOn = !isSwitchOn">
-          {{ isSwitchOn ? 'Hide Stavke' : 'Hide Stavke' }}
+          {{ isSwitchOn ? 'Hide Stavke' : 'Show Stavke' }}
       </button>
       <button class="btn btn-secondary" (click)="refreshPage()">Refresh</button>
   </div>
@@ -142,8 +142,9 @@
         <td>{{ racun.racunId }}</td>
         <td>{{ racun.statusRacuna }}</td>
         <td>{{ racun.datum | date }}</td>
-        
-        <td>{{ getUkupnaCenaZaRacun(racun.racunId) | number: '1.2-2' }} RSD</td>
+        <td>{{ racun.ukupnaCena   }} RSD</td>
+
+         
         <!-- Delete Button -->
         <button class="btn btn-danger" (click)="deleteRacun(racun.racunId)">Obriši</button>
 
@@ -166,29 +167,51 @@
     </tbody>
   </table>
 
-  <div *ngIf=" isSwitchOn && isStavkeModalVisible" class="modal-overlay">
+  <div *ngIf="isSwitchOn && isStavkeModalVisible" class="modal-overlay">
     <div class="modal-content">
       <h3>Stavke za Račun ID: {{ selectedRacunId }}</h3>
+      
+      <!-- Table for displaying items (stavke) -->
       <table class="table">
         <thead>
           <tr>
-            <th>Proizvod ID</th>
+            <th>Proizvod</th>
             <th>Količina</th>
-            <th>Popust</th>
+            <th>Popust (%)</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let stavka of stavke">
-            <td>{{ stavka.nazivProizvoda  }}</td>
-            <td>{{ stavka.kolicina }}</td>
-            <td>{{ stavka.popust }}%</td>
+            <td>{{ stavka.nazivProizvoda }}</td>
+  
+            <!-- Quantity Column with buttons for decreasing and increasing quantity -->
+            <td>
+              <button class="btn btn-primary" (click)="updateQuantity(stavka, -1)">-</button>
+              {{ stavka.kolicina }}
+              <button class="btn btn-primary" (click)="updateQuantity(stavka, 1)">+</button>
+            </td>
+  
+            <!-- Discount Column with buttons for decreasing and increasing discount -->
+            <td>
+              <button class="btn btn-primary" (click)="updateDiscount(stavka, -1)">-</button>
+              {{ stavka.popust }}%
+              <button class="btn btn-primary" (click)="updateDiscount(stavka, 1)">+</button>
+            </td>
           </tr>
         </tbody>
       </table>
+
+    <button class="btn btn-success" (click)="saveChanges()">Sačuvaj izmene</button>
+  
+      <!-- Close Button for Modal -->
       <button class="btn btn-secondary" (click)="closeStavkeModeal()">Close</button>
     </div>
   </div>
-</div>
+  
+ 
+    </div>
+ 
+  
 
 <style>
   .modal-overlay {

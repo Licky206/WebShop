@@ -11,7 +11,8 @@ namespace Authorization.Repositories
         Task<IEnumerable<StavkeRacuna>> GetStavkeByRacunIdAsync(int racunId);
         Task<bool> UpdateRacunStatusAsync(int racunId, string noviStatus);
         Task<bool> DeleteRacunAsync(int racunId);
-
-
+        Task<decimal> GetUkupnaCenaRacunaAsync(int racunId);
+        Task<bool> UpdateStavkeRacunaAsync(int stavkaId, int newKolicina, decimal newPopust);
+        Task<bool> UpdateStavkaAsync(int stavkaId, int newKolicina, decimal newPopust);
     }
 }

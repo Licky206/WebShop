@@ -33,8 +33,12 @@ export class DashboardComponent implements OnInit {
     isStavkeModalVisible: boolean = false;
     isSwitchOn: boolean = false; // Tracks switch state
     statusiRacuni = [ 'U izradi', 'FISKALIZIRAN', 'STORNIRAN' ];
-    
 
+
+    stavkaId: number = 0;
+    newKolicina: number = 0;
+    newPopust: number = 0
+     
 
     newStatus: string = '';  // New status for the invoice
 
@@ -189,10 +193,25 @@ export class DashboardComponent implements OnInit {
 
     //logika za prikaz racuna:
     fetchRacuni(): void {
-        this.racunService.getAllRacuni().subscribe((data) => {
-          this.racuni = data;
+      this.racunService.getAllRacuni().subscribe((racuni) => {
+        this.racuni = racuni;
+    
+        // Fetch ukupnaCena for each racun
+        this.racuni.forEach((racun) => {
+          this.racunService.getUkupnaCenaRacuna(racun.racunId).subscribe(
+            (response) => {
+              // Assuming the backend returns an object like { ukupnaCena: value }
+              console.log(`Racun ID: ${racun.racunId}, Cena: ${response.ukupnaCena}`);
+              racun.ukupnaCena = response.ukupnaCena; // Set ukupnaCena to racun object
+            },
+            (error) => {
+              console.error(`Error fetching ukupnaCena for Racun ID: ${racun.racunId}`, error);
+            }
+          );
         });
-      }
+      });
+    }
+    
     
     fetchStavke(racunId: number): void {
 
@@ -208,7 +227,8 @@ export class DashboardComponent implements OnInit {
                 const proizvod = this.proizvodi.find(p => p.proizvodID === stavka.proizvodID);
                 return {
                     ...stavka,
-                    nazivProizvoda: proizvod ? proizvod.nazivProizvoda : 'Nepoznat proizvod'
+                    nazivProizvoda: proizvod ? proizvod.nazivProizvoda : 'Nepoznat proizvod',
+                    stavkaId: stavka.stavkaId 
                 };
             });
             console.log('Fetched StavkeRacuna with product names for RacunId:', racunId);
@@ -295,9 +315,7 @@ export class DashboardComponent implements OnInit {
           console.error('Greška prilikom promene statusa:', error);
         }
       );
-
-
-
+ 
     }
 
 
@@ -333,6 +351,7 @@ export class DashboardComponent implements OnInit {
       }
     }
 
+ 
     onLogout() {
         localStorage.removeItem('token');
         this.router.navigateByUrl('/signup');
@@ -377,26 +396,37 @@ export class DashboardComponent implements OnInit {
 
     // Ažurirajte vrednost modela (u slučaju da koristite [(ngModel)])
     this.popust = Number(inputElement.value);
-}
+  }
 
-// U DashboardComponent
-getUkupnaCenaZaRacun(racunId: number): number {
-  const stavkeZaRacun = this.stavke.filter(stavka => stavka.racunId === racunId);
-  console.log('Stavke za račun:', stavkeZaRacun);  // Dodajte logovanje
-  return stavkeZaRacun.reduce((total, stavka) => {
-    const proizvod = this.proizvodi.find(p => p.proizvodID === stavka.proizvodID);
-    console.log('Proizvod:', proizvod);  // Dodajte logovanje
-    if (proizvod) {
-      const cenaProizvoda = proizvod.cena * stavka.kolicina * (1 - stavka.popust / 100);
-      return total + cenaProizvoda;
+
+  updateQuantity(stavka: any, change: number) {
+    const newKolicina = stavka.kolicina + change;
+    if (newKolicina >= 0) {
+      stavka.kolicina = newKolicina;
+  
     }
-    return total;
-  }, 0);
-}
+  }
 
+  saveChanges() {
+    for (let stavka of this.stavke) {
+      // Pozivanje backend metode za ažuriranje stavke sa novim količinama i popustima
+      this.racunService.updateStavka(stavka.stavkeRacunaID, stavka.kolicina, stavka.popust)
+        .subscribe(response => {
+          console.log('Stavka uspešno ažurirana:', response);
+        }, error => {
+          console.error('Greška prilikom ažuriranja stavke:', error);
+        });
+    }
+    // Zatvori modal nakon što su izmene sačuvane
+    this.closeStavkeModeal();
+    this.fetchRacuni();
+  }
 
-
-
- 
- 
+  // Funkcija za ažuriranje popusta
+  updateDiscount(stavka: any, change: number) {
+    const newPopust = stavka.popust + change;
+    if (newPopust >= 0) {
+      stavka.popust = newPopust;
+    }
+  }
 }

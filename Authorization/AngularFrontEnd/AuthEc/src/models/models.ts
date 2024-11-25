@@ -30,3 +30,9 @@ export interface RacunRequest {
   racun: Racun[];
   stavke: StavkeRacuna[];
 }
+export interface Stavka {
+  stavkaId: number;
+  kolicina: number;
+  popust: number;
+}
+
