@@ -379,6 +379,23 @@ export class DashboardComponent implements OnInit {
     this.popust = Number(inputElement.value);
 }
 
+// U DashboardComponent
+getUkupnaCenaZaRacun(racunId: number): number {
+  const stavkeZaRacun = this.stavke.filter(stavka => stavka.racunId === racunId);
+  console.log('Stavke za račun:', stavkeZaRacun);  // Dodajte logovanje
+  return stavkeZaRacun.reduce((total, stavka) => {
+    const proizvod = this.proizvodi.find(p => p.proizvodID === stavka.proizvodID);
+    console.log('Proizvod:', proizvod);  // Dodajte logovanje
+    if (proizvod) {
+      const cenaProizvoda = proizvod.cena * stavka.kolicina * (1 - stavka.popust / 100);
+      return total + cenaProizvoda;
+    }
+    return total;
+  }, 0);
+}
+
+
+
 
  
  

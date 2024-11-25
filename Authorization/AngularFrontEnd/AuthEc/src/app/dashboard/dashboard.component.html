@@ -132,9 +132,9 @@
     <thead>
       <tr>
         <th>Racun ID</th>
-        <th>Status Računa</th>
+        <th>Status Računa</th> 
         <th>Datum</th>
-        <th>Akcija</th> <!-- New column for actions -->
+        <th>Cena</th>  
       </tr>
     </thead>
     <tbody>
@@ -143,7 +143,7 @@
         <td>{{ racun.statusRacuna }}</td>
         <td>{{ racun.datum | date }}</td>
         
-
+        <td>{{ getUkupnaCenaZaRacun(racun.racunId) | number: '1.2-2' }} RSD</td>
         <!-- Delete Button -->
         <button class="btn btn-danger" (click)="deleteRacun(racun.racunId)">Obriši</button>
 
