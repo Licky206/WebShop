@@ -3,7 +3,7 @@ import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validator
 import { AuthService } from '../../shared/services/auth.service';
 import { ToastrService } from 'ngx-toastr';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-registration',
@@ -18,7 +18,8 @@ export class RegistrationComponent implements OnInit {
   constructor(
     public formBuilder: FormBuilder,
     private service: AuthService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private router: Router
   
   ) { }
 
@@ -38,6 +39,11 @@ export class RegistrationComponent implements OnInit {
   }
 
   ngOnInit(): void {
+
+
+    if(this.service.isLoggedIn())
+      this.router.navigateByUrl('/dashboard')
+
     this.form = this.formBuilder.group({
       fullName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],

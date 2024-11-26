@@ -8,6 +8,7 @@ import { Proizvod, RacunRequest, StavkeRacuna } from '../../models/models';
 import { ProizvodService } from '../shared/services/proizvod/services/proizvod.service';
 import { RacunService } from '../shared/services/racun.service';
 import { StavkeRacunaService } from '../shared/stavkeRacuna.service';
+import { AuthService } from '../shared/services/auth.service';
 
 @Component({
     selector: 'app-dashboard',
@@ -42,7 +43,7 @@ export class DashboardComponent implements OnInit {
 
     newStatus: string = '';  // New status for the invoice
 
-    constructor(private http: HttpClient, private router: Router, private proizvodService: ProizvodService, private racunService: RacunService, private stavkeRacunaService: StavkeRacunaService) { }
+    constructor(  private authService : AuthService,  private http: HttpClient, private router: Router, private proizvodService: ProizvodService, private racunService: RacunService, private stavkeRacunaService: StavkeRacunaService) { }
 
     ngOnInit() {
         this.loadProizvodi();
@@ -353,7 +354,7 @@ export class DashboardComponent implements OnInit {
 
  
     onLogout() {
-        localStorage.removeItem('token');
+        this.authService.deleteToken();
         this.router.navigateByUrl('/signup');
     }
     closeStavkeModeal(){
