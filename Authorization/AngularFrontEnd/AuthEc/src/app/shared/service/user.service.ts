@@ -8,8 +8,5 @@ export class UserService {
 
   constructor(private http: HttpClient) { }
 
-
-  getUserProfile(){
-    return this.http.get()
-  }
+ 
 }

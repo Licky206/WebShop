@@ -1,0 +1,19 @@
+{
+  "email": "Admin@gmail.com",
+  "password": "admin#",
+  "fullName": "Admin",
+  "role": "Admin",
+
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySWQiOiIyOWE3OGM5MS0xZTAzLTRmMGUtOGI1NS0wNzgyNzYyMTlmNTIiLCJyb2xlIjoiQWRtaW4iLCJuYmYiOjE3MzI3MTgyMTUsImV4cCI6MTczMzU4MjIxNSwiaWF0IjoxNzMyNzE4MjE1fQ.w3jegWxpwIGEWCWWPpZp82nulvESSNZWHAngRGHaJis"
+}
+{
+
+
+
+
+  {
+    "email": "korisnik@gmail.com",
+    "password": "string#",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySWQiOiI1N2I0OGQ3OC02NjJjLTRlNDMtYTkwOC02ODljZDk5NTM3YjMiLCJyb2xlIjoiVXNlciIsIm5iZiI6MTczMjcxODkzMiwiZXhwIjoxNzMzNTgyOTMyLCJpYXQiOjE3MzI3MTg5MzJ9.Sy2kupIB1P-AJNnLke_ePxHJbynixYXYtD6NdaGQdM4"
+  }
+  

@@ -15,6 +15,7 @@ namespace Authorization.Controllers
         public string Email { get; set; }
         public string Password { get; set; }
         public string FullName { get; set; }
+        public string Role { get; set; }
     }
 
     public class LoginModel
@@ -47,6 +48,7 @@ namespace Authorization.Controllers
             var result = await userManager.CreateAsync(
                 user,
                 userRegistrationModel.Password);
+            await userManager.AddToRoleAsync(user, userRegistrationModel.Role);
 
             if (result.Succeeded)
                 return Results.Ok(result);
@@ -56,19 +58,24 @@ namespace Authorization.Controllers
         [AllowAnonymous]
         private static async Task<IResult> SignIn(UserManager<AppUser> userManager,
              [FromBody] LoginModel loginModel,
-             IOptions<AppSettings > appSettings
+             IOptions<AppSettings> appSettings
              )
         {
             var user = await userManager.FindByEmailAsync(loginModel.Email);
             if (user != null && await userManager.CheckPasswordAsync(user, loginModel.Password))
             {
+                var roles = await userManager.GetRolesAsync(user);
                 var signInKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(appSettings.Value.JWTSecret ) );
+                    Encoding.UTF8.GetBytes(appSettings.Value.JWTSecret));
 
+
+                ClaimsIdentity claims = new ClaimsIdentity(new ClaimsIdentity(new Claim[] { new Claim("UserId", user.Id.ToString()),
+                                        new Claim(ClaimTypes.Role,roles.First()),
+                }));
                 var tokenDescriptor = new SecurityTokenDescriptor
                 {
-                    Subject = new ClaimsIdentity(new Claim[] { new Claim("UserId", user.Id.ToString()) }),
-                    Expires = DateTime.UtcNow.AddMinutes(10),
+                    Subject = claims,
+                    Expires = DateTime.UtcNow.AddDays(10),
                     SigningCredentials = new SigningCredentials(signInKey, SecurityAlgorithms.HmacSha256Signature)
                 };
 
@@ -82,9 +89,9 @@ namespace Authorization.Controllers
         }
     }
 
- }
+}
 
-
+  
 
 
 

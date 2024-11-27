@@ -1,4 +1,5 @@
 ﻿using Authorization.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Authorization.Controllers
@@ -14,7 +15,6 @@ namespace Authorization.Controllers
         {
             _proizvodService = proizvodService;
         }
-
         [HttpGet("PROIZVODI")]
         public async Task<IActionResult> GetProizvodi()
         {

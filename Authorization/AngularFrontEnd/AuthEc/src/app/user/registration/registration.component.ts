@@ -10,7 +10,7 @@ import { Router, RouterLink } from '@angular/router';
   standalone: true,
   imports: [ReactiveFormsModule, CommonModule, RouterLink],
   templateUrl: './registration.component.html',
-  styles: ``
+  styles: []
 })
 export class RegistrationComponent implements OnInit {
   form!: FormGroup;
@@ -20,10 +20,9 @@ export class RegistrationComponent implements OnInit {
     private service: AuthService,
     private toastr: ToastrService,
     private router: Router
-  
   ) { }
 
-    IsSubmitted: boolean = false;
+  IsSubmitted: boolean = false;
 
   passwordMatchValidator: ValidatorFn = (control: AbstractControl): null | object => {
     const password = control.get('password');
@@ -39,16 +38,15 @@ export class RegistrationComponent implements OnInit {
   }
 
   ngOnInit(): void {
-
-
-    if(this.service.isLoggedIn())
-      this.router.navigateByUrl('/dashboard')
+    if (this.service.isLoggedIn())
+      this.router.navigateByUrl('/dashboard');
 
     this.form = this.formBuilder.group({
       fullName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(3)]],
-      confirmPassword: ['']
+      confirmPassword: ['', Validators.required],
+      role: ['User', Validators.required]  // Default role set to 'User'
     }, { validators: this.passwordMatchValidator });
   }
 
@@ -57,15 +55,13 @@ export class RegistrationComponent implements OnInit {
     if (this.form.valid) {
       this.service.createUser(this.form.value)
         .subscribe({
-          next: (res:any) => {
-            if(res.succeeded)
-            {
+          next: (res: any) => {
+            if (res.succeeded) {
               this.form.reset();
               this.IsSubmitted = false;
-              this.toastr.success('Novi Korisnik Kreiran!', 'Uspesna Registracija' )
-            }
-            else
-            {
+              this.toastr.success('Novi Korisnik Kreiran!', 'Uspesna Registracija');
+              this.router.navigateByUrl("/signin");
+            } else {
               console.log('response:', res);
             }
             console.log(res);

@@ -4,6 +4,7 @@ using Authorization.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using static Authorization.Controllers.DapperController;
 using Dapper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Authorization.Controllers
 {
@@ -73,7 +74,11 @@ namespace Authorization.Controllers
             return Ok(racun);
 
         }
+        
         [HttpGet("UpdateRacunStatus/{racunId}/{newStatus}")]
+
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult>UpdateRacunStatus(int racunId, string newStatus)
         {
  
@@ -118,6 +123,7 @@ namespace Authorization.Controllers
         }
 
         [HttpGet("update-stavka")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateStavkaAsync(int stavkaId, int newKolicina, decimal newPopust)
         {
             var result = await _racunService.UpdateStavkaAsync( stavkaId, newKolicina, newPopust);

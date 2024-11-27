@@ -1,36 +1,40 @@
 <div class="mb-4">
-  <h2 class = "text-success">
-   <b>Registracija</b> 
+  <h2 class="text-success">
+    <b>Registracija</b>
   </h2>
-    <div>
-      Vec imate nalog?
-      <a routerLink="/login" class="text-decoration-none fw-medium text-success d-inlin-block">
-        Log in
-      </a>
-    </div>
-
+  <div>
+    Vec imate nalog?
+    <a routerLink="/signin" class="text-decoration-none fw-medium text-success d-inline-block">
+      Log in
+    </a>
   </div>
+</div>
 
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
-    <div class="mb-3">
-      <input class="form-control bg-body-secondary" placeholder="Full Name" formControlName="fullName">
-    </div>
-    <div class="mb-3">
-        <input class="form-control bg-body-secondary" placeholder="email" formControlName="email">
-       
-      </div>
-    
-      <div class="mb-3">
-        <input class="form-control bg-body-secondary" placeholder="Password" formControlName="password">
-       
-      </div>
+  <div class="mb-3">
+    <input class="form-control bg-body-secondary" placeholder="Full Name" formControlName="fullName">
+  </div>
+  <div class="mb-3">
+    <input class="form-control bg-body-secondary" placeholder="email" formControlName="email">
+  </div>
+  <div class="mb-3">
+    <input class="form-control bg-body-secondary" placeholder="Password" formControlName="password" type="password">
+  </div>
+  <div class="mb-3">
+    <input class="form-control bg-body-secondary" placeholder="Confirm Password" formControlName="confirmPassword" type="password">
+  </div>
 
-      <div class="mb-3">
-        <input class="form-control bg-body-secondary" placeholder="confirmPassword" formControlName="confirmPassword">
-      </div>
-     <div class="mt-4">
-        <button type="submit" class="btn btn-success w-100 rounded-3">
-        Registracija
-        </button>
-     </div>
+  <!-- Role input field -->
+  <div class="mb-3">
+    <select class="form-control bg-body-secondary" formControlName="role">
+      <option value="Admin">Admin</option>
+      <option value="User">User</option>
+    </select>
+  </div>
+
+  <div class="mt-4">
+    <button type="submit" class="btn btn-success w-100 rounded-3">
+      Registracija
+    </button>
+  </div>
 </form>

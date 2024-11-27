@@ -13,6 +13,7 @@ namespace Authorization.Extensions
         {
             services
                 .AddIdentityApiEndpoints<AppUser>()
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>();
 
             return services;
