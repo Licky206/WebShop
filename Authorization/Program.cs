@@ -42,7 +42,14 @@ builder.Services.AddScoped<IProizvodService, ProizvodService>();
 builder.Services.AddScoped<IRacunService, RacunService>();
 builder.Services.AddScoped<IRacunRepository, RacunRepository>();
 
- 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("CanEditRacunStatus", policy =>
+        policy.RequireClaim("CanEditRacunStatus", "true"));
+});
+
+
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins",

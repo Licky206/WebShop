@@ -19,6 +19,24 @@ export class RacunService {
     });
   }
 
+  private hasClaim(claim: string): boolean {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+
+    // Decode JWT token (use a library like 'jwt-decode' or manually decode it)
+    const payload = this.decodeToken(token);
+    return payload && payload[claim] === 'true'; // Check if the claim exists and is set to 'true'
+  }
+
+  // Decode JWT token to read claims (You can use a library like 'jwt-decode' for this)
+  private decodeToken(token: string): any {
+    const payload = token.split('.')[1];
+    return JSON.parse(atob(payload));
+  }
+
+
+
+
   kreirajRacunSaStavkama(request: any): Observable<any> {
     const headers = this.getHeaders(); // Get headers with token
     return this.http.post(`${this.apiUrl}/KreirajRacunSaStavkama`, request, { headers });
@@ -40,17 +58,18 @@ export class RacunService {
   }
 
   updateRacunStatus(racunId: number, newStatus: string): Observable<boolean> {
-    const headers = this.getHeaders(); // Get headers with token
+    const headers = this.getHeaders(); // Include token
   
     return this.http.get<boolean>(`${this.apiUrl}/UpdateRacunStatus/${racunId}/${newStatus}`, { headers }).pipe(
       catchError(error => {
         if (error.status === 403) {
-          alert('Niste admin, ne možete to raditi.');
+          alert('Nemate permisiju za ovu akciju.');
         }
-        return throwError(error); // Propagate the error for further handling if needed
+        return throwError(error);
       })
     );
   }
+  
   
   getUkupnaCenaRacuna(racunId: number): Observable<any> {
     const headers = this.getHeaders(); // Get headers with token
@@ -60,12 +79,19 @@ export class RacunService {
   updateStavka(stavkaId: number, newKolicina: number, newPopust: number): Observable<any> {
     if (!stavkaId) {
       console.error('Invalid stavkaId:', stavkaId);
+      return throwError('Invalid stavkaId');
+    }
+
+    // Check if the user has the 'CanEditRacunStatus' claim
+    if (!this.hasClaim('CanEditRacunStatus')) {
+      alert('Nemate pravo da uredite status računa.');
+      return throwError('Unauthorized');
     }
 
     let params = new HttpParams();
-    params = params.append('stavkaId', stavkaId);
-    params = params.append('newKolicina', newKolicina);
-    params = params.append('newPopust', newPopust);
+    params = params.append('stavkaId', stavkaId.toString());
+    params = params.append('newKolicina', newKolicina.toString());
+    params = params.append('newPopust', newPopust.toString());
 
     const headers = this.getHeaders();
 

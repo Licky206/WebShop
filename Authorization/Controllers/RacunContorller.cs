@@ -122,8 +122,8 @@ namespace Authorization.Controllers
             }
         }
 
-        [HttpGet("update-stavka")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = "CanEditRacunStatus")]
+        [HttpGet("update-stavka")] 
         public async Task<IActionResult> UpdateStavkaAsync(int stavkaId, int newKolicina, decimal newPopust)
         {
             var result = await _racunService.UpdateStavkaAsync( stavkaId, newKolicina, newPopust);
